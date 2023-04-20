@@ -77,6 +77,7 @@ internal class SendLetterHandler : IMessageHandler
 			};
 
 			await _mailSlot.ScheduleLetterAsync(
+				request.SendLetterId,
 				letter,
 				cancellationToken).ConfigureAwait(false);
 		}

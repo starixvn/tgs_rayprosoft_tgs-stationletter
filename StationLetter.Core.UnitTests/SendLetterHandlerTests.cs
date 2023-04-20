@@ -41,7 +41,7 @@ public class SendLetterHandlerTests
 
 		// Assert
 		_ = fakeMailSlot.Received(1)
-			.ScheduleLetterAsync(Arg.Any<Letter>());
+			.ScheduleLetterAsync(Arg.Is(request.SendLetterId.ToGuid()), Arg.Any<Letter>());
 		_ = fakeMessageSender.Received(1)
 			.PublishAsync(Arg.Is("tgs.station-letter.inbox"), Arg.Any<ReadOnlyMemory<byte>>());
 	}
@@ -152,7 +152,7 @@ public class SendLetterHandlerTests
 
 		// Assert
 		_ = fakeMailSlot.Received(1)
-			.ScheduleLetterAsync(Arg.Any<Letter>());
+			.ScheduleLetterAsync(Arg.Is(request.SendLetterId.ToGuid()), Arg.Any<Letter>());
 		_ = fakeMessageSender.Received(1)
 			.PublishAsync(Arg.Is("tgs.station-letter.inbox"), Arg.Any<ReadOnlyMemory<byte>>());
 	}
