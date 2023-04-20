@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NSubstitute;
+﻿using NSubstitute;
 using Tgs.MessageQueue;
 using Tgs.StationLetter;
-using Xunit;
 
 namespace StationLetter.Core.UnitTests;
+
 public class MailSoltTests
 {
 	[Fact]
