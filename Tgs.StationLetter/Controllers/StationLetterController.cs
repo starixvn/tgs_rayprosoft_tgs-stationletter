@@ -9,6 +9,7 @@ namespace Tgs.StationLetter.Controllers;
 [ApiController]
 public class StationLetterController : ControllerBase
 {
+	[HttpPut(Name = "SendStationLetter")]
 	public ValueTask SendLetterAsync(
 		[FromServices] ICommandService<SendStationLetterCommand> sendService,
 		CreateStationLetterViewModel viewModel)

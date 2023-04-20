@@ -6,12 +6,12 @@ namespace Tgs.StationLetter.MessageQueue;
 
 internal class SendLetterHandler : IMessageHandler
 {
-	private readonly IStationLetterPostman _stationLetterPostman;
+	private readonly IMailSlot _mailSlot;
 	private readonly ILogger<SendLetterHandler> _logger;
 
-	public SendLetterHandler(IStationLetterPostman stationLetterPostman, ILogger<SendLetterHandler> logger)
+	public SendLetterHandler(IMailSlot mailSlot, ILogger<SendLetterHandler> logger)
 	{
-		_stationLetterPostman = stationLetterPostman ?? throw new ArgumentNullException(nameof(stationLetterPostman));
+		_mailSlot = mailSlot ?? throw new ArgumentNullException(nameof(mailSlot));
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 	}
 
@@ -19,22 +19,32 @@ internal class SendLetterHandler : IMessageHandler
 	{
 		var request = SendLetterRequest.Parser.ParseFrom(data.Span);
 
+		var sendLetter = await _mailSlot.GetSendLetterAsync(
+			request.SendLetterId,
+			cancellationToken).ConfigureAwait(false);
+
+		if (sendLetter is null)
+		{
+			_logger.LogError("Can't found send letter request data.");
+			return;
+		}
+
 		var letterTemplate = new Letter(
 			Guid.Empty,
-			request.Sender,
+			sendLetter.Sender,
 			string.Empty,
-			request.Subject,
+			sendLetter.Subject ?? string.Empty,
 			null,
-			request.Content,
-			request.ComeFrom,
-			request.SentOn.ToDateTime(),
-			request.SentOn.ToDateTime(),
+			sendLetter.Content,
+			sendLetter.ComeFrom,
+			sendLetter.SentOn,
+			sendLetter.SentOn,
 			false,
 			false);
 
 		if (letterTemplate.ComeFrom.HasValue)
 		{
-			var comeFromLetter = await _stationLetterPostman.GetLetterAsync(
+			var comeFromLetter = await _mailSlot.GetLetterAsync(
 				letterTemplate.ComeFrom.Value,
 				cancellationToken).ConfigureAwait(false);
 
@@ -46,7 +56,7 @@ internal class SendLetterHandler : IMessageHandler
 
 			var quotation = comeFromLetter.Quotation;
 			if (!string.IsNullOrEmpty(comeFromLetter.Quotation))
-				quotation += "\n-------------------\n";
+				quotation += "\n--------------------------\n";
 			quotation += comeFromLetter.Content;
 
 			letterTemplate = letterTemplate with
@@ -56,7 +66,7 @@ internal class SendLetterHandler : IMessageHandler
 			};
 		}
 
-		foreach (var receiver in request.Receivers)
+		foreach (var receiver in sendLetter.Receivers)
 		{
 			var letter = letterTemplate with
 			{
@@ -64,7 +74,7 @@ internal class SendLetterHandler : IMessageHandler
 				Receiver = receiver
 			};
 
-			await _stationLetterPostman.InboxAsync(
+			await _mailSlot.ScheduleLetterAsync(
 				letter,
 				cancellationToken).ConfigureAwait(false);
 		}

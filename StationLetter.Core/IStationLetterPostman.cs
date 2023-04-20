@@ -2,7 +2,7 @@
 
 public interface IStationLetterPostman
 {
-	ValueTask<Letter?> GetLetterAsync(Guid letterId, CancellationToken cancellationToken = default);
+	IAsyncEnumerable<Letter> GetLettersFromMailSlotAsync(CancellationToken cancellationToken = default);
 
-	ValueTask InboxAsync(Letter letter, CancellationToken cancellationToken = default);
+	ValueTask InboxAsync(IEnumerable<Letter> letters, CancellationToken cancellationToken = default);
 }
