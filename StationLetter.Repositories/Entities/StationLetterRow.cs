@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Tgs.StationLetter.Repositories.Entities;
 
-public partial class StationLetter2
+public partial class StationLetterRow
 {
     public Guid Id { get; set; }
 

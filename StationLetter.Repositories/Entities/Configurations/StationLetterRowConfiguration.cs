@@ -9,9 +9,9 @@ using Tgs.StationLetter.Repositories.Entities;
 
 namespace Tgs.StationLetter.Repositories.Entities.Configurations
 {
-    public partial class StationLetter2Configuration : IEntityTypeConfiguration<StationLetter2>
+    public partial class StationLetterRowConfiguration : IEntityTypeConfiguration<StationLetterRow>
     {
-        public void Configure(EntityTypeBuilder<StationLetter2> entity)
+        public void Configure(EntityTypeBuilder<StationLetterRow> entity)
         {
             entity.HasKey(e => e.Id).HasName("pk_station_letter2");
 
@@ -34,6 +34,6 @@ namespace Tgs.StationLetter.Repositories.Entities.Configurations
             OnConfigurePartial(entity);
         }
 
-        partial void OnConfigurePartial(EntityTypeBuilder<StationLetter2> entity);
+        partial void OnConfigurePartial(EntityTypeBuilder<StationLetterRow> entity);
     }
 }
