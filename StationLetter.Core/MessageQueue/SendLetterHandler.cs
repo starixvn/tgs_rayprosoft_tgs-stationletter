@@ -7,11 +7,13 @@ namespace Tgs.StationLetter.MessageQueue;
 internal class SendLetterHandler : IMessageHandler
 {
 	private readonly IMailSlot _mailSlot;
+	private readonly IMessageSender _messageSender;
 	private readonly ILogger<SendLetterHandler> _logger;
 
-	public SendLetterHandler(IMailSlot mailSlot, ILogger<SendLetterHandler> logger)
+	public SendLetterHandler(IMailSlot mailSlot, IMessageSender messageSender, ILogger<SendLetterHandler> logger)
 	{
 		_mailSlot = mailSlot ?? throw new ArgumentNullException(nameof(mailSlot));
+		_messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 	}
 
@@ -78,5 +80,10 @@ internal class SendLetterHandler : IMessageHandler
 				letter,
 				cancellationToken).ConfigureAwait(false);
 		}
+
+		await _messageSender.PublishAsync(
+			"tgs.station-letter.inbox",
+			data,
+			cancellationToken).ConfigureAwait(false);
 	}
 }
