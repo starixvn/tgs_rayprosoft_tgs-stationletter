@@ -5,7 +5,7 @@ using Tgs.StationLetter.ViewModels;
 
 namespace Tgs.StationLetter.Controllers;
 
-[Route("api/[controller]")]
+[Route("station-letter")]
 [ApiController]
 public class StationLetterController : ControllerBase
 {

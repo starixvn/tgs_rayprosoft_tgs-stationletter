@@ -1,6 +1,79 @@
+﻿using FluentdForward.OpenTelemetry.MessagePack;
+using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Tgs.StationLetter;
+using Tgs.StationLetter.MessageQueue;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging
+	.AddOpenTelemetry(options =>
+	{
+		options.IncludeFormattedMessage = true;
+		options.ParseStateValues = true;
+		_ = options.AddFluentdForwardExporter(fluentOptions =>
+		{
+			var nodeIp = builder.Configuration.GetValue<string>("NODE_IP")!;
+			fluentOptions.Host = nodeIp;
+			fluentOptions.Tag = builder.Configuration.GetValue<string>("OTEL_SERVICE_NAME")!;
+			fluentOptions.UseMessagePack(LogRecordFormatterResolver.GetResolverInstanceWithExtendInfo(
+				"MachineInfo",
+				() => new
+				{
+					Environment.MachineName
+				}));
+		});
+	});
+
+builder.Services
+	.AddRouting(routeOpt => routeOpt.LowercaseUrls = true)
+	.AddControllers();
+
+builder.Services
+	.AddSingleton(sp => new RedisConnectionManager(
+		builder.Configuration.GetConnectionString("Redis")!))
+	.AddStationLetter()
+	.AddStationLetterRepositories(
+		dbConfig => dbConfig
+			.UseNpgsql("name=Tgs"),
+		sp => sp.GetRequiredService<RedisConnectionManager>().Database)
+	.AddMessageQueue()
+	.AddNatsMessageQueue(natsConfig => natsConfig
+		.ConfigQueueOptions((options, _) => options.Url =
+			builder.Configuration.GetConnectionString("Nats")!)
+		.AddHandler(ProcessorTypes.SendLetterHandlerType, "tgs.station-letter.delivery", "tgs.station-letter.delivery")
+		.AddHandler(ProcessorTypes.InboxLettersHandlerType, "tgs.station-letter.inbox", "tgs.station-letter.inbox"))
+	.AddNatsGlobPatternExchange("*");
+
+builder.Services
+	.AddHealthChecks()
+	.Services
+	.AddOpenTelemetry()
+	.WithTracing(traceBuilder => traceBuilder
+		.SetResourceBuilder(ResourceBuilder.CreateDefault()
+			.AddEnvironmentVariableDetector())
+		.AddSource("Tgs.*")
+		.AddAspNetCoreInstrumentation()
+		.AddOtlpExporter())
+	.WithMetrics(meterBuiler => meterBuiler
+		.AddRuntimeInstrumentation()
+		.AddAspNetCoreInstrumentation()
+		.AddOtlpExporter())
+	.Services
+	.Configure<AspNetCoreInstrumentationOptions>(options => options.Filter =
+		httpContext => !httpContext.Request.Path.HasValue
+			|| !httpContext.Request.Path.StartsWithSegments("/swagger")
+			&& !httpContext.Request.Path.StartsWithSegments("/healthz")
+			&& !httpContext.Request.Path.StartsWithSegments("/metrics")
+			&& !new[] { "html", "ico", "png", "jpg" }.Any(
+				ext => httpContext.Request.Path.Value.EndsWith($".{ext}")));
+
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.MapControllers();
+app.MapHealthChecks("/healthz");
 
 app.Run();
