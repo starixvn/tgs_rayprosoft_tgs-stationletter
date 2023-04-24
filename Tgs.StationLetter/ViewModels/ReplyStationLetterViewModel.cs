@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter.ViewModels;
+﻿namespace Tgs.StationLetterService.ViewModels;
 
 public class ReplyStationLetterViewModel
 {

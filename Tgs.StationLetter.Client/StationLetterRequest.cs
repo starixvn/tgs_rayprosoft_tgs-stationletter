@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter.Client;
+﻿namespace Tgs.StationLetterService.Client;
 public record StationLetterRequest(
 	string Sender,
 	IEnumerable<string> Receivers,

@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <SqlQueryToolsConnectionString />
+    <RootNamespace>Tgs.StationLetterService.Client</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

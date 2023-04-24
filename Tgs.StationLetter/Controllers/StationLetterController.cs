@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Tgs.ServiceUtility;
-using Tgs.StationLetter.ApplicationServices;
-using Tgs.StationLetter.ViewModels;
+using Tgs.StationLetterService.ApplicationServices;
+using Tgs.StationLetterService.ViewModels;
 using Tgs.WebApi.Toolkits;
 
-namespace Tgs.StationLetter.Controllers;
+namespace Tgs.StationLetterService.Controllers;
 
 [Route("station-letter")]
 [ApiController]
@@ -26,7 +26,7 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
-	[HttpPut("{letterId}", Name = "ReplyLetter")]
+	[HttpPut("{letterId}", Name = "ReplyStationLetter")]
 	[SuccessStatusCode(HttpStatusCode.Accepted)]
 	public ValueTask ReplyLetterAsync(
 		[FromServices] ICommandService<ReplyStationLetterCommand> sendService,
@@ -42,10 +42,27 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
-	//public IEnumerable<StationLetterViewModel> ListLettersByReceiver()
-	//{
-	//	return Array.Empty<StationLetterViewModel>();
-	//}
+	[HttpGet("{receiver}", Name = "ListLettersByReceiver")]
+	public IAsyncEnumerable<StationLetterViewModel> ListLettersByReceiverAsync(
+		[FromServices] IQueryService<GetLettersByUserQuery, Letter> queryService,
+		string receiver)
+	{
+		var query = new GetLettersByUserQuery(receiver);
+
+		return queryService.QueryAsync(query, HttpContext.RequestAborted)
+			.Select(letter => new StationLetterViewModel
+			{
+				Id = letter.Id,
+				Sender = letter.Sender,
+				Receiver = letter.Receiver,
+				Subject = letter.Subject,
+				Quotation = letter.Quotation,
+				Content = letter.Content,
+				SentOn = letter.SentOn,
+				HaveRead = letter.HaveRead,
+				Replied = letter.Replied
+			});
+	}
 
 	//public void MarkLetterHaveRead(Guid letterId)
 	//{

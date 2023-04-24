@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Tgs.StationLetter.Repositories.Entities;
+namespace Tgs.StationLetterService.Repositories.Entities;
 
 public partial class StationLetterRow
 {

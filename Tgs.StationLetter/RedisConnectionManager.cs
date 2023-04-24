@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 
-namespace Tgs.StationLetter;
+namespace Tgs.StationLetterService;
 
 public class RedisConnectionManager : IDisposable
 {

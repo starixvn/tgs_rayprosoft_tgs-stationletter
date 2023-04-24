@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Tgs.StationLetter.Repositories</RootNamespace>
+    <RootNamespace>Tgs.StationLetterService.Repositories</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

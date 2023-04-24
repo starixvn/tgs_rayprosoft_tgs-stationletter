@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Tgs.StationLetter.Repositories.Entities;
+using Tgs.StationLetterService.Repositories.Entities;
 
-namespace Tgs.StationLetter.Repositories;
+namespace Tgs.StationLetterService.Repositories;
 
 internal class TgsRepository : ITgsRepository
 {
@@ -98,5 +98,29 @@ internal class TgsRepository : ITgsRepository
 		letterRow.Replied = true;
 
 		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	public IAsyncEnumerable<Letter> QueryLettersByUserAsync(string user, CancellationToken cancellationToken = default)
+	{
+		var queryDate = DateTime.UtcNow.AddDays(-90D);
+
+		return _dbContext.StationLetterRows
+			.Where(row => row.Receiver == user
+				&& row.ReceivedOn >= queryDate)
+			.OrderByDescending(row => row.SentOn)
+			.Select(row => new Letter(
+				row.Id,
+				row.Sender,
+				row.Receiver,
+				row.Subject,
+				row.Quotation,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn,
+				row.ReceivedOn,
+				row.HaveRead,
+				row.Replied))
+			.ToAsyncEnumerable()
+			.Do(_ => cancellationToken.ThrowIfCancellationRequested());
 	}
 }

@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter;
+﻿namespace Tgs.StationLetterService;
 public record Letter(
 	Guid Id,
 	string Sender,

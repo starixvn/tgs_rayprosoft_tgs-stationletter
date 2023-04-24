@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using Tgs.StationLetter;
+using Tgs.StationLetterService;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

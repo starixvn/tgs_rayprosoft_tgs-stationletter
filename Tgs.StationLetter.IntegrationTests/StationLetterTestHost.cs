@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Exporter;
-using Tgs.StationLetter.Repositories.Entities;
+using Tgs.StationLetterService.Repositories.Entities;
 
-namespace Tgs.StationLetter.IntegrationTests;
+namespace Tgs.StationLetterService.IntegrationTests;
 
 internal static class StationLetterTestHost
 {

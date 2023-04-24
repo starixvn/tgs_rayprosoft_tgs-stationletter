@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter.MessageQueue;
+﻿namespace Tgs.StationLetterService.MessageQueue;
 
 public static class ProcessorTypes
 {

@@ -1,7 +1,7 @@
 ﻿using Tgs.MessageQueue;
 using Tgs.StationLetter.Protos;
 
-namespace Tgs.StationLetter.MessageQueue;
+namespace Tgs.StationLetterService.MessageQueue;
 
 internal class InboxLettersHandler : IMessageHandler
 {

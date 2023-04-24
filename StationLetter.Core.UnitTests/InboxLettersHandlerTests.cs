@@ -1,8 +1,8 @@
 ﻿using Google.Protobuf;
 using NSubstitute;
-using Tgs.StationLetter;
-using Tgs.StationLetter.MessageQueue;
 using Tgs.StationLetter.Protos;
+using Tgs.StationLetterService;
+using Tgs.StationLetterService.MessageQueue;
 
 namespace StationLetter.Core.UnitTests;
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using Tgs.StationLetter;
-using Tgs.StationLetter.Repositories;
-using Tgs.StationLetter.Repositories.Entities;
+using Tgs.StationLetterService;
+using Tgs.StationLetterService.Repositories;
+using Tgs.StationLetterService.Repositories.Entities;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

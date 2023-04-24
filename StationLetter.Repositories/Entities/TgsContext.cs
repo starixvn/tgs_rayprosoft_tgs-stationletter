@@ -2,10 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using Tgs.StationLetter.Repositories.Entities.Configurations;
+using Tgs.StationLetterService.Repositories.Entities.Configurations;
 #nullable enable
 
-namespace Tgs.StationLetter.Repositories.Entities;
+namespace Tgs.StationLetterService.Repositories.Entities;
 
 public partial class TgsContext : DbContext
 {

@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter;
+﻿namespace Tgs.StationLetterService;
 
 public interface ITgsRepository
 {
@@ -9,4 +9,6 @@ public interface ITgsRepository
 	ValueTask SetLetterHaveReadAsync(Guid letterId, CancellationToken cancellationToken = default);
 
 	ValueTask SetLetterRepliedAsync(Guid letterId, CancellationToken cancellationToken = default);
+
+	IAsyncEnumerable<Letter> QueryLettersByUserAsync(string user, CancellationToken cancellationToken = default);
 }

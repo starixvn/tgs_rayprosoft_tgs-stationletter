@@ -2,7 +2,7 @@
 using Tgs.MessageQueue;
 using Tgs.StationLetter.Protos;
 
-namespace Tgs.StationLetter;
+namespace Tgs.StationLetterService;
 
 internal class MailSlot : IMailSlot
 {

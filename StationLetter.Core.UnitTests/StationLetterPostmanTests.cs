@@ -1,5 +1,5 @@
 ﻿using NSubstitute;
-using Tgs.StationLetter;
+using Tgs.StationLetterService;
 
 namespace StationLetter.Core.UnitTests;
 

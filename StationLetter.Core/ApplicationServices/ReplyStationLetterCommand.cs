@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter.ApplicationServices;
+﻿namespace Tgs.StationLetterService.ApplicationServices;
 public record ReplyStationLetterCommand(
 	string Sender,
 	string Receiver,

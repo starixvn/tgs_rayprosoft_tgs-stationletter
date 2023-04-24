@@ -4,10 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
-using Tgs.StationLetter.Client;
+using Tgs.StationLetterService.Client;
+using Tgs.StationLetterService.Repositories.Entities;
 using Xunit.Abstractions;
 
-namespace Tgs.StationLetter.IntegrationTests;
+namespace Tgs.StationLetterService.IntegrationTests;
 
 public class StationLetterApiTests
 {
@@ -94,5 +95,225 @@ public class StationLetterApiTests
 			.DeliveryAsync(
 				Arg.Is<SendLetter>(l => expected.Matches(l)),
 				Arg.Any<CancellationToken>());
+	}
+
+	[Fact]
+	public async Task 取得User的站內信列表()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test2",
+				Receiver = user,
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow,
+				ReceivedOn = DateTime.UtcNow
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test3",
+				Receiver = user,
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow,
+				ReceivedOn = DateTime.UtcNow
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test4",
+				Receiver = "test5",
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow,
+				ReceivedOn = DateTime.UtcNow
+			}
+		};
+		await dbContext.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows.Take(2)
+			.Select(row => new Client.StationLetter(
+				row.Id,
+				row.Sender,
+				row.Receiver,
+				row.Subject,
+				row.Quotation,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn,
+				row.HaveRead,
+				row.Replied))
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListStationLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject().ShouldMatch(actual);
+	}
+
+	[Fact]
+	public async Task 取得User的站內信列表_只能列出90天的資料()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test2",
+				Receiver = user,
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow.AddDays(-10D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-10D)
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test3",
+				Receiver = user,
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow.AddDays(-50D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-50D)
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test4",
+				Receiver = user,
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow.AddDays(-91D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-91D)
+			}
+		};
+		await dbContext.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows.Take(2)
+			.Select(row => new Client.StationLetter(
+				row.Id,
+				row.Sender,
+				row.Receiver,
+				row.Subject,
+				row.Quotation,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn,
+				row.HaveRead,
+				row.Replied))
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListStationLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject().ShouldMatch(actual);
+	}
+
+	[Fact]
+	public async Task 取得User的站內信列表_會依照SentOn排序()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test4",
+				Receiver = user,
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow.AddDays(-81D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-81D)
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test3",
+				Receiver = user,
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow.AddDays(-50D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-50D)
+			},
+			new StationLetterRow
+			{
+				Id = Guid.NewGuid(),
+				Sender = "test2",
+				Receiver = user,
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow.AddDays(-10D),
+				ReceivedOn = DateTime.UtcNow.AddDays(-10D)
+			}
+		};
+		await dbContext.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows
+			.Select(row => new Client.StationLetter(
+				row.Id,
+				row.Sender,
+				row.Receiver,
+				row.Subject,
+				row.Quotation,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn,
+				row.HaveRead,
+				row.Replied))
+			.OrderByDescending(latter => latter.SentOn)
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListStationLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject().ShouldMatch(actual);
 	}
 }

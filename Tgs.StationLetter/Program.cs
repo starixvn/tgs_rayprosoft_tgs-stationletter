@@ -5,8 +5,8 @@ using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Tgs.StationLetter;
-using Tgs.StationLetter.MessageQueue;
+using Tgs.StationLetterService;
+using Tgs.StationLetterService.MessageQueue;
 
 var builder = WebApplication.CreateBuilder(args);
 

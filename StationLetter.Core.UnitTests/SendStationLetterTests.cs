@@ -1,7 +1,7 @@
 ﻿using ExpectedObjects;
 using NSubstitute;
-using Tgs.StationLetter;
-using Tgs.StationLetter.ApplicationServices;
+using Tgs.StationLetterService;
+using Tgs.StationLetterService.ApplicationServices;
 
 namespace StationLetter.Core.UnitTests;
 
@@ -72,5 +72,23 @@ public class SendStationLetterTests
 				sendLetter => expected.ToExpectedObject().Matches(sendLetter)));
 		_ = fakeTgsRepository.Received(1)
 			.SetLetterRepliedAsync(Arg.Is(command.ReplyLetterId));
+	}
+
+	[Fact]
+	public async Task 取得使用者的站內信列表()
+	{
+		// Arrange
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+
+		var sut = new GetLettersByUserQueryService(fakeTgsRepository);
+
+		var query = new GetLettersByUserQuery("user");
+
+		// Act
+		_ = await sut.QueryAsync(query).ToArrayAsync();
+
+		// Assert
+		_ = fakeTgsRepository.Received(1)
+			.QueryLettersByUserAsync(Arg.Is(query.User));
 	}
 }

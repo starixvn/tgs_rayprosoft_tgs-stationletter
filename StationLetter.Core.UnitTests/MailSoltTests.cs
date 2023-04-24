@@ -1,7 +1,6 @@
 ﻿using NSubstitute;
 using Tgs.MessageQueue;
-using Tgs.StationLetter;
-using Xunit;
+using Tgs.StationLetterService;
 
 namespace StationLetter.Core.UnitTests;
 

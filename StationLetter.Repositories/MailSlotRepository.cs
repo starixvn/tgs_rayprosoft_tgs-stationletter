@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using StackExchange.Redis;
 
-namespace Tgs.StationLetter.Repositories;
+namespace Tgs.StationLetterService.Repositories;
 
 internal class MailSlotRepository : IMailSlotRepository
 {

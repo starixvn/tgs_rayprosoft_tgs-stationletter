@@ -1,6 +1,6 @@
 ﻿using Tgs.ServiceUtility;
 
-namespace Tgs.StationLetter.ApplicationServices;
+namespace Tgs.StationLetterService.ApplicationServices;
 
 internal class SendStationLetterCommandService : ICommandService<SendStationLetterCommand>
 {

@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
-using Tgs.StationLetter.Repositories.Entities;
+using Tgs.StationLetterService.Repositories.Entities;
 
 #nullable disable
 
-namespace Tgs.StationLetter.Repositories.Entities.Configurations
+namespace Tgs.StationLetterService.Repositories.Entities.Configurations
 {
     public partial class StationLetterRowConfiguration : IEntityTypeConfiguration<StationLetterRow>
     {

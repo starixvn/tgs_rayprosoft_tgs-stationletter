@@ -1,4 +1,4 @@
-﻿namespace Tgs.StationLetter;
+﻿namespace Tgs.StationLetterService;
 
 internal class StationLetterPostman : IStationLetterPostman
 {
