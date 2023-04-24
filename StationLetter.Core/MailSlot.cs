@@ -40,5 +40,9 @@ internal class MailSlot : IMailSlot
 	public ValueTask ScheduleLetterAsync(Guid id, Letter letter, CancellationToken cancellationToken = default)
 		=> _mailSlotRepository.SaveLetterAsync(id, letter, cancellationToken);
 
-	public IAsyncEnumerable<Letter> GetWaitingSendLettersAsync(Guid id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+	public IAsyncEnumerable<Letter> GetWaitingSendLettersAsync(Guid id, CancellationToken cancellationToken = default)
+		=> _mailSlotRepository.GetLettersAsync(id, cancellationToken);
+
+	public ValueTask CompleteSendLetterAsync(Guid id, CancellationToken cancellationToken = default)
+		=> _mailSlotRepository.CleanUpSendLetterAsync(id, cancellationToken);
 }

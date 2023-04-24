@@ -82,4 +82,42 @@ public class MailSoltTests
 		_ = fakeMailSoltRepository.Received(1)
 			.SaveLetterAsync(Arg.Is(sendLetterId), Arg.Is(letter));
 	}
+
+	[Fact]
+	public async Task 從送信要求id取得待送信件()
+	{
+		// Arrange
+		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
+
+		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+
+		var sendLetterId = Guid.NewGuid();
+
+		// Act
+		_ = await sut.GetWaitingSendLettersAsync(sendLetterId).ToArrayAsync();
+
+		// Assert
+		_ = fakeMailSoltRepository.Received(1)
+			.GetLettersAsync(Arg.Is(sendLetterId));
+	}
+
+	[Fact]
+	public async Task 完成送信排程()
+	{
+		// Arrange
+		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
+
+		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+
+		var sendLetterId = Guid.NewGuid();
+
+		// Act
+		await sut.CompleteSendLetterAsync(sendLetterId);
+
+		// Assert
+		_ = fakeMailSoltRepository.Received(1)
+			.CleanUpSendLetterAsync(Arg.Is(sendLetterId));
+	}
 }

@@ -14,12 +14,23 @@ internal class InboxLettersHandler : IMessageHandler
 		_stationLetterPostman = stationLetterPostman ?? throw new ArgumentNullException(nameof(stationLetterPostman));
 	}
 
-	public ValueTask HandleAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+	public async ValueTask HandleAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
 	{
 		var request = SendLetterRequest.Parser.ParseFrom(data.Span);
 
-		var letters = _mailSlot.GetWaitingSendLettersAsync(request.SendLetterId, cancellationToken);
+		try
+		{
+			var letters = _mailSlot.GetWaitingSendLettersAsync(request.SendLetterId, cancellationToken);
 
-		return _stationLetterPostman.InboxAsync(letters.ToEnumerable(), cancellationToken);
+			await _stationLetterPostman.InboxAsync(
+				letters.ToEnumerable(),
+				cancellationToken).ConfigureAwait(false);
+		}
+		finally
+		{
+			await _mailSlot.CompleteSendLetterAsync(
+				request.SendLetterId,
+				cancellationToken).ConfigureAwait(false);
+		}
 	}
 }

@@ -23,18 +23,18 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
-	public void ReplyLetter(
-		Guid letterId,
-		ReplyStationLetterViewModel viewModel)
-	{
-	}
+	//public void ReplyLetter(
+	//	Guid letterId,
+	//	ReplyStationLetterViewModel viewModel)
+	//{
+	//}
 
-	public IEnumerable<StationLetterViewModel> ListLettersByReceiver()
-	{
-		return Array.Empty<StationLetterViewModel>();
-	}
+	//public IEnumerable<StationLetterViewModel> ListLettersByReceiver()
+	//{
+	//	return Array.Empty<StationLetterViewModel>();
+	//}
 
-	public void MarkLetterHaveRead(Guid letterId)
-	{
-	}
+	//public void MarkLetterHaveRead(Guid letterId)
+	//{
+	//}
 }

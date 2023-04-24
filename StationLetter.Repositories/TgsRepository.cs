@@ -27,7 +27,7 @@ internal class TgsRepository : ITgsRepository
 			.ConfigureAwait(false);
 
 		var insertLetters = letterArray
-			.Where(l => existsLetters.Contains(l.Id))
+			.Where(l => !existsLetters.Contains(l.Id))
 			.Select(l => new StationLetterRow
 			{
 				Id = l.Id,

@@ -49,6 +49,14 @@ builder.Services
 	.AddNatsGlobPatternExchange("*");
 
 builder.Services
+	.AddSwaggerGen(swaggerOptions =>
+	{
+		var xmlFileNames = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.xml");
+		foreach (var xmlFileName in xmlFileNames)
+			swaggerOptions.IncludeXmlComments(xmlFileName);
+	});
+
+builder.Services
 	.AddHealthChecks()
 	.Services
 	.AddOpenTelemetry()
@@ -74,6 +82,8 @@ builder.Services
 var app = builder.Build();
 
 app.MapControllers();
+app.MapSwagger();
+app.UseSwaggerUI();
 app.MapHealthChecks("/healthz");
 
 app.Run();

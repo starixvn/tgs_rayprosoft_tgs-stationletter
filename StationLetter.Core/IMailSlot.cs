@@ -11,4 +11,6 @@ public interface IMailSlot
 	ValueTask ScheduleLetterAsync(Guid id, Letter letter, CancellationToken cancellationToken = default);
 
 	IAsyncEnumerable<Letter> GetWaitingSendLettersAsync(Guid id, CancellationToken cancellationToken = default);
+
+	ValueTask CompleteSendLetterAsync(Guid id, CancellationToken cancellationToken = default);
 }
