@@ -17,4 +17,14 @@ internal class StationLetterClient
 			.Do(response => response.EnsureSuccessStatusCode())
 			.FirstAsync(cancellationToken: cancellationToken)
 			.ConfigureAwait(false);
+
+	public async ValueTask ReplyStationLetterAsync(
+		Guid letterId,
+		ReplyStationLetterRequest request,
+		CancellationToken cancellationToken = default)
+		=> await _httpClient.PutAsJsonAsync($"/station-letter/{letterId}", request, cancellationToken)
+			.ToAsyncEnumerable()
+			.Do(response => response.EnsureSuccessStatusCode())
+			.FirstAsync(cancellationToken)
+			.ConfigureAwait(false);
 }

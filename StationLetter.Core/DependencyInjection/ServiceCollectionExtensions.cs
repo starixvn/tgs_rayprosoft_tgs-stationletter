@@ -8,6 +8,6 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddStationLetter(this IServiceCollection services)
 		=> services
 			.RegisterAllServiceUtilityTypes(Assembly.GetExecutingAssembly(), ServiceLifetime.Transient)
-			.AddSingleton<IMailSlot, MailSlot>()
+			.AddScoped<IMailSlot, MailSlot>()
 			.AddTransient<IStationLetterPostman, StationLetterPostman>();
 }

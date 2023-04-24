@@ -1,4 +1,5 @@
 ﻿using FluentdForward.OpenTelemetry.MessagePack;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
@@ -30,7 +31,8 @@ builder.Logging
 
 builder.Services
 	.AddRouting(routeOpt => routeOpt.LowercaseUrls = true)
-	.AddControllers();
+	.AddControllers()
+	.AddMvcOptions(mvcOptions => mvcOptions.AddWebApiToolkitFilters());
 
 builder.Services
 	.AddSingleton(sp => new RedisConnectionManager(
@@ -51,6 +53,8 @@ builder.Services
 builder.Services
 	.AddSwaggerGen(swaggerOptions =>
 	{
+		swaggerOptions.ApplyWebApiToolkitSupport();
+
 		var xmlFileNames = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.xml");
 		foreach (var xmlFileName in xmlFileNames)
 			swaggerOptions.IncludeXmlComments(xmlFileName);

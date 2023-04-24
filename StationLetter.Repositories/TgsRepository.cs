@@ -49,4 +49,54 @@ internal class TgsRepository : ITgsRepository
 
 		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 	}
+
+	public async ValueTask<Letter?> GetLetterAsync(Guid letterId, CancellationToken cancellationToken = default)
+	{
+		var letterRow = await _dbContext.StationLetterRows.FindAsync(
+			new object?[] { letterId },
+			cancellationToken: cancellationToken).ConfigureAwait(false);
+
+		return letterRow is null
+			? null
+			: new Letter(
+				letterRow.Id,
+				letterRow.Sender,
+				letterRow.Receiver,
+				letterRow.Subject,
+				letterRow.Quotation,
+				letterRow.Content,
+				letterRow.ComeFrom,
+				letterRow.SentOn,
+				letterRow.ReceivedOn,
+				letterRow.HaveRead,
+				letterRow.Replied);
+	}
+
+	public async ValueTask SetLetterHaveReadAsync(Guid letterId, CancellationToken cancellationToken = default)
+	{
+		var letterRow = await _dbContext.StationLetterRows.FindAsync(
+			new object?[] { letterId },
+			cancellationToken: cancellationToken).ConfigureAwait(false);
+
+		if (letterRow is null || letterRow.HaveRead is true)
+			return;
+
+		letterRow.HaveRead = true;
+
+		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	public async ValueTask SetLetterRepliedAsync(Guid letterId, CancellationToken cancellationToken = default)
+	{
+		var letterRow = await _dbContext.StationLetterRows.FindAsync(
+			new object?[] { letterId },
+			cancellationToken: cancellationToken).ConfigureAwait(false);
+
+		if (letterRow is null || letterRow.Replied is true)
+			return;
+
+		letterRow.Replied = true;
+
+		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+	}
 }

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using Tgs.ServiceUtility;
 using Tgs.StationLetter.ApplicationServices;
 using Tgs.StationLetter.ViewModels;
+using Tgs.WebApi.Toolkits;
 
 namespace Tgs.StationLetter.Controllers;
 
@@ -10,6 +12,7 @@ namespace Tgs.StationLetter.Controllers;
 public class StationLetterController : ControllerBase
 {
 	[HttpPut(Name = "SendStationLetter")]
+	[SuccessStatusCode(HttpStatusCode.Accepted)]
 	public ValueTask SendLetterAsync(
 		[FromServices] ICommandService<SendStationLetterCommand> sendService,
 		CreateStationLetterViewModel viewModel)
@@ -23,11 +26,21 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
-	//public void ReplyLetter(
-	//	Guid letterId,
-	//	ReplyStationLetterViewModel viewModel)
-	//{
-	//}
+	[HttpPut("{letterId}", Name = "ReplyLetter")]
+	[SuccessStatusCode(HttpStatusCode.Accepted)]
+	public ValueTask ReplyLetterAsync(
+		[FromServices] ICommandService<ReplyStationLetterCommand> sendService,
+		Guid letterId,
+		ReplyStationLetterViewModel viewModel)
+	{
+		var command = new ReplyStationLetterCommand(
+			viewModel.Sender,
+			viewModel.Receiver,
+			letterId,
+			viewModel.Content);
+
+		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
+	}
 
 	//public IEnumerable<StationLetterViewModel> ListLettersByReceiver()
 	//{

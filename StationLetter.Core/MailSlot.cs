@@ -7,11 +7,13 @@ namespace Tgs.StationLetter;
 internal class MailSlot : IMailSlot
 {
 	private readonly IMailSlotRepository _mailSlotRepository;
+	private readonly ITgsRepository _tgsRepository;
 	private readonly IMessageSender _messageSender;
 
-	public MailSlot(IMailSlotRepository mailSlotRepository, IMessageSender messageSender)
+	public MailSlot(IMailSlotRepository mailSlotRepository, ITgsRepository tgsRepository, IMessageSender messageSender)
 	{
 		_mailSlotRepository = mailSlotRepository ?? throw new ArgumentNullException(nameof(mailSlotRepository));
+		_tgsRepository = tgsRepository ?? throw new ArgumentNullException(nameof(tgsRepository));
 		_messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
 	}
 
@@ -35,7 +37,8 @@ internal class MailSlot : IMailSlot
 	public ValueTask<SendLetter?> GetSendLetterAsync(Guid id, CancellationToken cancellationToken = default)
 		=> _mailSlotRepository.GetSendLetterAsync(id, cancellationToken);
 
-	public ValueTask<Letter?> GetLetterAsync(Guid letterId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+	public ValueTask<Letter?> GetLetterAsync(Guid letterId, CancellationToken cancellationToken = default)
+		=> _tgsRepository.GetLetterAsync(letterId, cancellationToken);
 
 	public ValueTask ScheduleLetterAsync(Guid id, Letter letter, CancellationToken cancellationToken = default)
 		=> _mailSlotRepository.SaveLetterAsync(id, letter, cancellationToken);

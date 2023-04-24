@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using Tgs.MessageQueue;
 using Tgs.StationLetter;
+using Xunit;
 
 namespace StationLetter.Core.UnitTests;
 
@@ -11,9 +12,13 @@ public class MailSoltTests
 	{
 		// Arrange
 		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
 
 		var sendLetter = new SendLetter(
 			"sender",
@@ -38,9 +43,13 @@ public class MailSoltTests
 	{
 		// Arrange
 		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
 
 		var sendLetterId = Guid.NewGuid();
 
@@ -57,9 +66,13 @@ public class MailSoltTests
 	{
 		// Arrange
 		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
 
 		var sendLetterId = Guid.NewGuid();
 		var letter = new Letter(
@@ -88,9 +101,13 @@ public class MailSoltTests
 	{
 		// Arrange
 		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
 
 		var sendLetterId = Guid.NewGuid();
 
@@ -107,9 +124,13 @@ public class MailSoltTests
 	{
 		// Arrange
 		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new MailSlot(fakeMailSoltRepository, fakeMessageSender);
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
 
 		var sendLetterId = Guid.NewGuid();
 
@@ -119,5 +140,28 @@ public class MailSoltTests
 		// Assert
 		_ = fakeMailSoltRepository.Received(1)
 			.CleanUpSendLetterAsync(Arg.Is(sendLetterId));
+	}
+
+	[Fact]
+	public async Task 取得要回信的信件資料()
+	{
+		// Arrange
+		var fakeMailSoltRepository = Substitute.For<IMailSlotRepository>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
+
+		var sut = new MailSlot(
+			fakeMailSoltRepository,
+			fakeTgsRepository,
+			fakeMessageSender);
+
+		var letterId = Guid.NewGuid();
+
+		// Act
+		_ = await sut.GetLetterAsync(letterId);
+
+		// Assert
+		_ = fakeTgsRepository.Received(1)
+			.GetLetterAsync(Arg.Is(letterId));
 	}
 }
