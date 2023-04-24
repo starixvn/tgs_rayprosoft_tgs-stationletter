@@ -44,8 +44,9 @@ public class SendStationLetterTests
 	{
 		// Arrange
 		var fakeMailSlot = Substitute.For<IMailSlot>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
 
-		var sut = new ReplyStationLetterCommandService(fakeMailSlot);
+		var sut = new ReplyStationLetterCommandService(fakeMailSlot, fakeTgsRepository);
 
 		var command = new ReplyStationLetterCommand(
 			"receiver",
@@ -69,5 +70,7 @@ public class SendStationLetterTests
 		_ = fakeMailSlot.Received(1)
 			.DeliveryAsync(Arg.Is<SendLetter>(
 				sendLetter => expected.ToExpectedObject().Matches(sendLetter)));
+		_ = fakeTgsRepository.Received(1)
+			.SetLetterRepliedAsync(Arg.Is(command.ReplyLetterId));
 	}
 }
