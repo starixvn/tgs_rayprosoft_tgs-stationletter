@@ -316,4 +316,43 @@ public class StationLetterApiTests
 		// Assert
 		expected.ToExpectedObject().ShouldMatch(actual);
 	}
+
+	[Fact]
+	public async Task 標記站內信已讀()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var letterId = Guid.NewGuid();
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var row = new StationLetterRow
+		{
+			Id = letterId,
+			Sender = "test4",
+			Receiver = "test1",
+			Subject = "t3",
+			Content = "t3t3",
+			SentOn = DateTime.UtcNow.AddDays(-81D),
+			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
+		};
+		_ = await dbContext.StationLetterRows.AddAsync(row);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		// Act
+		Assert.False(row.HaveRead);
+
+		await sut.MarkStationLetterHaveReadAsync(letterId);
+
+		// Assert
+		Assert.True(row.HaveRead);
+	}
 }

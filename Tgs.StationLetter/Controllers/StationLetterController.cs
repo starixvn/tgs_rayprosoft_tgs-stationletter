@@ -64,7 +64,13 @@ public class StationLetterController : ControllerBase
 			});
 	}
 
-	//public void MarkLetterHaveRead(Guid letterId)
-	//{
-	//}
+	[HttpPatch("{letterId}:HaveRead", Name = "MarkStationLetterHaveRead")]
+	public ValueTask MarkLetterHaveReadAsync(
+		[FromServices] ICommandService<SetLetterHaveReadCommand> patchService,
+		Guid letterId)
+	{
+		var command = new SetLetterHaveReadCommand(letterId);
+
+		return patchService.ExecuteAsync(command, HttpContext.RequestAborted);
+	}
 }

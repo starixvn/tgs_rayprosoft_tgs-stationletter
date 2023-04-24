@@ -47,4 +47,11 @@ internal class StationLetterClient
 				.ToAsyncEnumerable()
 				.Where(arr => arr is not null)
 				.SelectMany(arr => arr!));
+
+	public async ValueTask MarkStationLetterHaveReadAsync(Guid letterId, CancellationToken cancellationToken = default)
+		=> await _httpClient.PatchAsync($"/station-letter/{letterId}:HaveRead", null, cancellationToken)
+			.ToAsyncEnumerable()
+			.Do(response => response.EnsureSuccessStatusCode())
+			.FirstAsync(cancellationToken: cancellationToken)
+			.ConfigureAwait(false);
 }

@@ -91,4 +91,22 @@ public class SendStationLetterTests
 		_ = fakeTgsRepository.Received(1)
 			.QueryLettersByUserAsync(Arg.Is(query.User));
 	}
+
+	[Fact]
+	public async Task 標記站內信已讀()
+	{
+		// Arrange
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+
+		var sut = new SetLetterHaveReadCommandService(fakeTgsRepository);
+
+		var command = new SetLetterHaveReadCommand(Guid.NewGuid());
+
+		// Act
+		await sut.ExecuteAsync(command);
+
+		// Assert
+		_ = fakeTgsRepository.Received(1)
+			.SetLetterHaveReadAsync(Arg.Is(command.LetterId));
+	}
 }
