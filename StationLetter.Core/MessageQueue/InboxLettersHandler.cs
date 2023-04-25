@@ -1,4 +1,5 @@
-﻿using Tgs.MessageQueue;
+﻿using System.Runtime.CompilerServices;
+using Tgs.MessageQueue;
 using Tgs.StationLetter.Protos;
 
 namespace Tgs.StationLetterService.MessageQueue;
@@ -20,17 +21,42 @@ internal class InboxLettersHandler : IMessageHandler
 
 		try
 		{
-			var letters = _mailSlot.GetWaitingSendLettersAsync(request.SendLetterId, cancellationToken);
+			await foreach (var letters in GetSendLetterBatchAsync(
+				request.SendLetterId,
+				cancellationToken).ConfigureAwait(false))
+			{
+				await _stationLetterPostman.InboxAsync(
+					letters,
+					cancellationToken).ConfigureAwait(false);
 
-			await _stationLetterPostman.InboxAsync(
-				letters.ToEnumerable(),
-				cancellationToken).ConfigureAwait(false);
+				await _mailSlot.CompleteWaitingSendLetterBatchAsync(
+					request.SendLetterId,
+					letters.Length,
+					cancellationToken).ConfigureAwait(false);
+			}
 		}
 		finally
 		{
 			await _mailSlot.CompleteSendLetterAsync(
 				request.SendLetterId,
 				cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async IAsyncEnumerable<Letter[]> GetSendLetterBatchAsync(
+		Guid sendLetterId,
+		[EnumeratorCancellation] CancellationToken cancellationToken = default)
+	{
+		while (true)
+		{
+			var batch = await _mailSlot.GetWaitingSendLettersAsync(
+				sendLetterId,
+				cancellationToken).ToArrayAsync(cancellationToken).ConfigureAwait(false);
+
+			if (batch.Length == 0)
+				yield break;
+
+			yield return batch;
 		}
 	}
 }

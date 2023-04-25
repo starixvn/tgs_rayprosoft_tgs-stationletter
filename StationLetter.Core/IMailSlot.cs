@@ -12,5 +12,7 @@ public interface IMailSlot
 
 	IAsyncEnumerable<Letter> GetWaitingSendLettersAsync(Guid id, CancellationToken cancellationToken = default);
 
+	ValueTask CompleteWaitingSendLetterBatchAsync(Guid id, int completedCount, CancellationToken cancellationToken = default);
+
 	ValueTask CompleteSendLetterAsync(Guid id, CancellationToken cancellationToken = default);
 }

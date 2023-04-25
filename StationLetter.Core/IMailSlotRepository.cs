@@ -8,7 +8,9 @@ public interface IMailSlotRepository
 
 	ValueTask SaveLetterAsync(Guid id, Letter letter, CancellationToken cancellationToken = default);
 
-	IAsyncEnumerable<Letter> GetLettersAsync(Guid sendLetterId, CancellationToken cancellationToken = default);
+	IAsyncEnumerable<Letter> GetLettersAsync(Guid sendLetterId, int batchLimit, CancellationToken cancellationToken = default);
+
+	ValueTask RemoveLettersAsync(Guid sendLetterId, int popCount, CancellationToken cancellationToken = default);
 
 	ValueTask CleanUpSendLetterAsync(Guid sendLetterId, CancellationToken cancellationToken = default);
 }

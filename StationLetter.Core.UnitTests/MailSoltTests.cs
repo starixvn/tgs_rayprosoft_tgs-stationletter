@@ -115,7 +115,7 @@ public class MailSoltTests
 
 		// Assert
 		_ = fakeMailSoltRepository.Received(1)
-			.GetLettersAsync(Arg.Is(sendLetterId));
+			.GetLettersAsync(Arg.Is(sendLetterId), Arg.Is(10));
 	}
 
 	[Fact]

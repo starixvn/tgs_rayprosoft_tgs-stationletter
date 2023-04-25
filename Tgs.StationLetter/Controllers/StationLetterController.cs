@@ -64,7 +64,7 @@ public class StationLetterController : ControllerBase
 			});
 	}
 
-	[HttpPatch("{letterId}:HaveRead", Name = "MarkStationLetterHaveRead")]
+	[HttpPatch("{letterId}:read", Name = "MarkStationLetterHaveRead")]
 	public ValueTask MarkLetterHaveReadAsync(
 		[FromServices] ICommandService<SetLetterHaveReadCommand> patchService,
 		Guid letterId)

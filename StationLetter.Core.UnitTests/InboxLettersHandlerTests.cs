@@ -23,21 +23,23 @@ public class InboxLettersHandlerTests
 		};
 
 		_ = fakeMailSlot.GetWaitingSendLettersAsync(Arg.Is(request.SendLetterId.ToGuid()))
-			.Returns(new[]
-			{
-				new Letter(
-					Guid.NewGuid(),
-					"sender",
-					"receiver",
-					"abc",
-					null,
-					"aabbcc",
-					null,
-					DateTime.Now,
-					DateTime.Now,
-					false,
-					false)
-			}.ToAsyncEnumerable());
+			.Returns(
+				new[]
+				{
+					new Letter(
+						Guid.NewGuid(),
+						"sender",
+						"receiver",
+						"abc",
+						null,
+						"aabbcc",
+						null,
+						DateTime.Now,
+						DateTime.Now,
+						false,
+						false)
+				}.ToAsyncEnumerable(),
+				Array.Empty<Letter>().ToAsyncEnumerable());
 
 		// Act
 		await sut.HandleAsync(request.ToByteArray());
@@ -47,5 +49,7 @@ public class InboxLettersHandlerTests
 			.InboxAsync(Arg.Any<IEnumerable<Letter>>());
 		_ = fakeMailSlot.Received(1)
 			.CompleteSendLetterAsync(Arg.Is(request.SendLetterId.ToGuid()));
+		_ = fakeMailSlot.Received(1)
+			.CompleteWaitingSendLetterBatchAsync(Arg.Is(request.SendLetterId.ToGuid()), Arg.Is(1));
 	}
 }
