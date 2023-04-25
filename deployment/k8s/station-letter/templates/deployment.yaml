@@ -4,6 +4,8 @@ metadata:
   name: {{ include "station-letter.fullname" . }}
   labels:
     {{- include "station-letter.labels" . | nindent 4 }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -33,20 +35,94 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: Payment-PhpGoPay({{ .Release.Namespace }})
+            - name: LogServiceDomain
+              value: fluent-bit.logging
+            - name: ConnectionStrings__Tgs
+              valueFrom:
+                secretKeyRef:
+                  name: tgs-connections
+                  key: tgs
+            - name: ConnectionStrings__Nats
+              valueFrom:
+                secretKeyRef:
+                  name: tgs-connections
+                  key: nats
+            - name: ConnectionStrings__Redis
+              valueFrom:
+                secretKeyRef:
+                  name: tgs-connections
+                  key: redis
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          volumeMounts:
+            - mountPath: /app/appsettings.Production.json
+              name: appsettings
+              readOnly: true
+              subPath: appsettings.json
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
-          readinessProbe:
+          startupProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
+            periodSeconds: 2
+            failureThreshold: 30
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        - name: monitor
+          image: otel/opentelemetry-collector:0.75.0
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --config=/etc/otel/config.yaml
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          ports:
+            - name: metrics
+              containerPort: 8889
+              protocol: TCP
+            - name: health
+              containerPort: 13133
+              protocol: TCP
+            - name: otlp
+              containerPort: 4317
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/otel/config.yaml
+              name: appsettings
+              readOnly: true
+              subPath: otel-collector-config.yaml
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+      volumes:
+        - name: appsettings
+          configMap:
+            name: configmap-{{ include "station-letter.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
