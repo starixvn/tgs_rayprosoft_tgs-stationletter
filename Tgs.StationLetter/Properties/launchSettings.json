@@ -1,27 +1,33 @@
-﻿{
-	"profiles": {
-		"http": {
-			"commandName": "Project",
-			"dotnetRunMessages": true,
-			"launchBrowser": true,
-			"applicationUrl": "http://localhost:5166",
-			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development",
-				"OTEL_SERVICE_NAME": "StationLetter(local)",
-				"NODE_IP": "otel.rpgp.cc"
-			}
-		},
-		"https": {
-			"commandName": "Project",
-			"dotnetRunMessages": true,
-			"launchBrowser": true,
-			"launchUrl": "swagger",
-			"applicationUrl": "https://localhost:7148;http://localhost:5166",
-			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development",
-				"OTEL_SERVICE_NAME": "StationLetter(local)",
-				"NODE_IP": "otel.rpgp.cc"
-			}
-		}
-	}
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_SERVICE_NAME": "StationLetter(local)",
+        "NODE_IP": "otel.rpgp.cc"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5166"
+    },
+    "https": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_SERVICE_NAME": "StationLetter(local)",
+        "NODE_IP": "otel.rpgp.cc"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7148;http://localhost:5166"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "publishAllPorts": true
+    }
+  }
 }
