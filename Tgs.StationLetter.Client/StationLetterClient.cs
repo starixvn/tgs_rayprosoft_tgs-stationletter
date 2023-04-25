@@ -49,7 +49,7 @@ internal class StationLetterClient
 				.SelectMany(arr => arr!));
 
 	public async ValueTask MarkStationLetterHaveReadAsync(Guid letterId, CancellationToken cancellationToken = default)
-		=> await _httpClient.PatchAsync($"/station-letter/{letterId}:HaveRead", null, cancellationToken)
+		=> await _httpClient.PatchAsync($"/station-letter/{letterId}:read", null, cancellationToken)
 			.ToAsyncEnumerable()
 			.Do(response => response.EnsureSuccessStatusCode())
 			.FirstAsync(cancellationToken: cancellationToken)
