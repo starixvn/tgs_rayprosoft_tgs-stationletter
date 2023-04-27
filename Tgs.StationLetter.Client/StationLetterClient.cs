@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Tgs.StationLetterService.Client;
 
-internal class StationLetterClient
+internal class StationLetterClient : IStationLetterClient
 {
 	private static readonly JsonSerializerOptions _JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 	private readonly HttpClient _httpClient;
