@@ -42,7 +42,7 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
-	[HttpGet("{receiver}", Name = "ListLettersByReceiver")]
+	[HttpGet("{receiver}", Name = "ListStationLettersByReceiver")]
 	public IAsyncEnumerable<StationLetterViewModel> ListLettersByReceiverAsync(
 		[FromServices] IQueryService<GetLettersByUserQuery, Letter> queryService,
 		string receiver)
@@ -62,6 +62,16 @@ public class StationLetterController : ControllerBase
 				HaveRead = letter.HaveRead,
 				Replied = letter.Replied
 			});
+	}
+
+	[HttpGet("{letterId:Guid}", Name = "GetStationLetterById")]
+	public ValueTask<Letter?> GetLetterByIdAsync(
+		[FromServices] IGetService<GetLetterByIdQuery, Letter?> getService,
+		Guid letterId)
+	{
+		var query = new GetLetterByIdQuery(letterId);
+
+		return getService.GetAsync(query, HttpContext.RequestAborted);
 	}
 
 	[HttpPatch("{letterId}:read", Name = "MarkStationLetterHaveRead")]

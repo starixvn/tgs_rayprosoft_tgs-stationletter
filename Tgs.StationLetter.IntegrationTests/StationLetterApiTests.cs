@@ -6,6 +6,7 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Tgs.StationLetterService.IntegrationTests;
@@ -354,5 +355,54 @@ public class StationLetterApiTests
 
 		// Assert
 		Assert.True(row.HaveRead);
+	}
+
+	[Fact]
+	public async Task 取得站內信內容()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var letterId = Guid.NewGuid();
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var row = new StationLetterRow
+		{
+			Id = letterId,
+			Sender = "test4",
+			Receiver = "test1",
+			Subject = "t3",
+			Content = "t3t3",
+			SentOn = DateTime.UtcNow.AddDays(-81D),
+			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
+		};
+		_ = await dbContext.StationLetterRows.AddAsync(row);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = new Client.StationLetter(
+			letterId,
+			row.Sender,
+			row.Receiver,
+			row.Subject,
+			row.Quotation,
+			row.Content,
+			row.ComeFrom,
+			row.SentOn,
+			row.HaveRead,
+			row.Replied);
+
+		// Act
+		var actual = await sut.GetStationLetterAsync(letterId);
+
+		// Assert
+		Assert.Equal(expected, actual);
 	}
 }

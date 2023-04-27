@@ -2,6 +2,8 @@
 
 public interface IStationLetterClient
 {
+	ValueTask<StationLetter?> GetStationLetterAsync(Guid letterId, CancellationToken cancellationToken = default);
+
 	IAsyncEnumerable<StationLetter> ListStationLettersAsync(string receiver, CancellationToken cancellationToken = default);
 
 	ValueTask MarkStationLetterHaveReadAsync(Guid letterId, CancellationToken cancellationToken = default);

@@ -109,4 +109,22 @@ public class SendStationLetterTests
 		_ = fakeTgsRepository.Received(1)
 			.SetLetterHaveReadAsync(Arg.Is(command.LetterId));
 	}
+
+	[Fact]
+	public async Task 依據站內信Id取得資料()
+	{
+		// Arrange
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+
+		var sut = new GetLetterByIdQueryService(fakeTgsRepository);
+
+		var query = new GetLetterByIdQuery(Guid.NewGuid());
+
+		// Act
+		_ = await sut.GetAsync(query);
+
+		// Assert
+		_ = fakeTgsRepository.Received(1)
+			.GetLetterAsync(Arg.Is(query.LetterId));
+	}
 }

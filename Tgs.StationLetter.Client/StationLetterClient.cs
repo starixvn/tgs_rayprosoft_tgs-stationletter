@@ -54,4 +54,10 @@ internal class StationLetterClient : IStationLetterClient
 			.Do(response => response.EnsureSuccessStatusCode())
 			.FirstAsync(cancellationToken: cancellationToken)
 			.ConfigureAwait(false);
+
+	public async ValueTask<StationLetter?> GetStationLetterAsync(Guid letterId, CancellationToken cancellationToken = default)
+		=> await _httpClient.GetFromJsonAsync<StationLetter>(
+			$"/station-letter/{letterId}",
+			_JsonSerializerOptions,
+			cancellationToken).ConfigureAwait(false);
 }
