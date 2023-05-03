@@ -1,13 +1,18 @@
 ﻿[
-	{
-		"SchemaName": "dbo",
-		"Tables": [
-			{
-				"Columns": [],
-				"Name": "station_letter2",
-				"NewName": "StationLetterRow"
-			}
-		],
-		"UseSchemaName": false
-	}
+   {
+      "SchemaName": "dbo",
+      "Tables": [
+         {
+            "Columns": [ ],
+            "Name": "station_letter_delivery_box",
+            "NewName": "StationLetterDelivery"
+         },
+         {
+            "Columns": [ ],
+            "Name": "station_letter2",
+            "NewName": "StationLetterRow"
+         }
+      ],
+      "UseSchemaName": false
+   }
 ]

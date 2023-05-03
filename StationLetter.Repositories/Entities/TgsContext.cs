@@ -14,6 +14,8 @@ public partial class TgsContext : DbContext
     {
     }
 
+    public virtual DbSet<StationLetterDelivery> StationLetterDeliveries { get; set; }
+
     public virtual DbSet<StationLetterRow> StationLetterRows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -22,6 +24,7 @@ public partial class TgsContext : DbContext
             .HasPostgresExtension("ltree")
             .HasPostgresExtension("pg_trgm");
 
+            modelBuilder.ApplyConfiguration(new Configurations.StationLetterDeliveryConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.StationLetterRowConfiguration());
         OnModelCreatingPartial(modelBuilder);
     }
