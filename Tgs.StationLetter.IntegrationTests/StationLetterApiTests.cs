@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
+using Tgs.ServiceUtility;
+using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
 using Xunit;
@@ -24,13 +26,13 @@ public class StationLetterApiTests
 	public async Task 送出站內信()
 	{
 		// Arrange
-		var fakeMailSlot = Substitute.For<IMailSlot>();
+		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
 
 		await using var web = StationLetterTestHost.Factory
 			.WithWebHostBuilder(hostBuilder => hostBuilder
 				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
 				.ConfigureServices(services => services
-					.AddSingleton(fakeMailSlot)));
+					.AddSingleton(fakeSendStationLetterCommandService)));
 
 		var httpClient = web.CreateClient();
 
@@ -54,9 +56,9 @@ public class StationLetterApiTests
 		await sut.SendStationLetterAsync(request);
 
 		// Assert
-		_ = fakeMailSlot.Received(1)
-			.DeliveryAsync(
-				Arg.Is<SendLetter>(l => expected.Matches(l)),
+		_ = fakeSendStationLetterCommandService.Received(1)
+			.ExecuteAsync(
+				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
 				Arg.Any<CancellationToken>());
 	}
 

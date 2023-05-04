@@ -1,5 +1,6 @@
 ﻿using ExpectedObjects;
 using NSubstitute;
+using Tgs.MessageQueue;
 using Tgs.StationLetterService;
 using Tgs.StationLetterService.ApplicationServices;
 
@@ -11,9 +12,10 @@ public class SendStationLetterTests
 	public async Task 發送站內信()
 	{
 		// Arrange
-		var fakeMailSlot = Substitute.For<IMailSlot>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new SendStationLetterCommandService(fakeMailSlot);
+		var sut = new SendStationLetterCommandService(fakeTgsRepository, fakeMessageSender);
 
 		var command = new SendStationLetterCommand(
 			"sender",
@@ -24,7 +26,7 @@ public class SendStationLetterTests
 		var expected = new
 		{
 			command.Sender,
-			command.Receivers,
+			ReceiverType = ReceiverType.Receivers,
 			command.Subject,
 			command.Content,
 			ComeFrom = default(Guid?)
@@ -34,9 +36,11 @@ public class SendStationLetterTests
 		await sut.ExecuteAsync(command);
 
 		// Assert
-		_ = fakeMailSlot.Received(1)
-			.DeliveryAsync(Arg.Is<SendLetter>(
-				sendLetter => expected.ToExpectedObject().Matches(sendLetter)));
+		_ = fakeTgsRepository.Received(1)
+			.InsertDeliveryLetterAsync(Arg.Is<DeliveryLetter>(
+				delivery => expected.ToExpectedObject().Matches(delivery)));
+		_ = fakeMessageSender.Received(1)
+			.PublishAsync(Arg.Is("tgs.station-letter.dispatch.receivers"), Arg.Any<ReadOnlyMemory<byte>>());
 	}
 
 	[Fact]

@@ -7,3 +7,7 @@ import "phoenix/protobuf/guid.proto";
 message SendLetterRequest {
 	phoenix.protobuf.GuidValue send_letter_id = 1;
 }
+
+message DeliverLetterRequest {
+	phoenix.protobuf.GuidValue deliver_letter_id = 1;
+}

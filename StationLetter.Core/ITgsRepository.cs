@@ -11,4 +11,8 @@ public interface ITgsRepository
 	ValueTask SetLetterRepliedAsync(Guid letterId, CancellationToken cancellationToken = default);
 
 	IAsyncEnumerable<Letter> QueryLettersByUserAsync(string user, CancellationToken cancellationToken = default);
+
+	ValueTask InsertDeliveryLetterAsync(DeliveryLetter deliveryLetter, CancellationToken cancellationToken = default);
+
+	ValueTask<DeliveryLetter?> GetDeliveryLetterAsync(Guid letterId, CancellationToken cancellationToken = default);
 }

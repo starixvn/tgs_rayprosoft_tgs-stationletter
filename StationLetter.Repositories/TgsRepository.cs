@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Tgs.StationLetterService.Repositories.Entities;
 
 namespace Tgs.StationLetterService.Repositories;
@@ -122,5 +123,42 @@ internal class TgsRepository : ITgsRepository
 				row.Replied))
 			.ToAsyncEnumerable()
 			.Do(_ => cancellationToken.ThrowIfCancellationRequested());
+	}
+
+	public async ValueTask InsertDeliveryLetterAsync(DeliveryLetter deliveryLetter, CancellationToken cancellationToken = default)
+	{
+		_ = await _dbContext.StationLetterDeliveries
+			.AddAsync(new StationLetterDelivery
+			{
+				Id = deliveryLetter.Id,
+				Sender = deliveryLetter.Sender,
+				ReceiverType = deliveryLetter.ReceiverType.ToString(),
+				Receiver = JsonSerializer.Serialize(deliveryLetter.Receiver, StationLetterUtility.SerializerOptions),
+				Subject = deliveryLetter.Subject,
+				Content = deliveryLetter.Content,
+				ComeFrom = deliveryLetter.ComeFrom,
+				SentOn = deliveryLetter.SentOn.ToUniversalTime()
+			}, cancellationToken).ConfigureAwait(false);
+
+		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+	}
+
+	public async ValueTask<DeliveryLetter?> GetDeliveryLetterAsync(Guid letterId, CancellationToken cancellationToken = default)
+	{
+		var deliveryRow = await _dbContext.StationLetterDeliveries.FindAsync(
+			new object?[] { letterId },
+			cancellationToken).ConfigureAwait(false);
+
+		return deliveryRow is null
+			? null
+			: new DeliveryLetter(
+				deliveryRow.Id,
+				deliveryRow.Sender,
+				Enum.Parse<ReceiverType>(deliveryRow.ReceiverType),
+				JsonDocument.Parse(deliveryRow.Receiver),
+				deliveryRow.Subject,
+				deliveryRow.Content,
+				deliveryRow.ComeFrom,
+				deliveryRow.SentOn);
 	}
 }

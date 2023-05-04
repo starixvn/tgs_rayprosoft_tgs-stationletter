@@ -1,22 +1,46 @@
-﻿using Tgs.ServiceUtility;
+﻿using System.Text.Json;
+using Google.Protobuf;
+using Tgs.MessageQueue;
+using Tgs.ServiceUtility;
+using Tgs.StationLetter.Protos;
 
 namespace Tgs.StationLetterService.ApplicationServices;
 
 internal class SendStationLetterCommandService : ICommandService<SendStationLetterCommand>
 {
-	private readonly IMailSlot _mailSlot;
+	private readonly ITgsRepository _tgsRepository;
+	private readonly IMessageSender _messageSender;
 
-	public SendStationLetterCommandService(IMailSlot mailSlot)
+	public SendStationLetterCommandService(ITgsRepository tgsRepository, IMessageSender messageSender)
 	{
-		_mailSlot = mailSlot ?? throw new ArgumentNullException(nameof(mailSlot));
+		_tgsRepository = tgsRepository ?? throw new ArgumentNullException(nameof(tgsRepository));
+		_messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
 	}
 
-	public ValueTask ExecuteAsync(SendStationLetterCommand command, CancellationToken cancellationToken = default)
-		=> _mailSlot.DeliveryAsync(new SendLetter(
+	public async ValueTask ExecuteAsync(SendStationLetterCommand command, CancellationToken cancellationToken = default)
+	{
+		var deliveryLetter = new DeliveryLetter(
+			Guid.NewGuid(),
 			command.Sender,
-			command.Receivers,
+			ReceiverType.Receivers,
+			JsonSerializer.SerializeToDocument(command.Receivers, StationLetterUtility.SerializerOptions),
 			command.Subject,
 			command.Content,
 			null,
-			DateTime.UtcNow), cancellationToken);
+			DateTime.UtcNow);
+
+		await _tgsRepository.InsertDeliveryLetterAsync(
+			deliveryLetter,
+			cancellationToken).ConfigureAwait(false);
+
+		var request = new DeliverLetterRequest
+		{
+			DeliverLetterId = deliveryLetter.Id
+		};
+
+		await _messageSender.PublishAsync(
+			$"tgs.station-letter.dispatch.{deliveryLetter.ReceiverType.ToString().ToLowerInvariant()}",
+			request.ToByteArray(),
+			cancellationToken).ConfigureAwait(false);
+	}
 }
