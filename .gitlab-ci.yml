@@ -25,6 +25,16 @@ unit-test:
 
 push-nuget:
   extends: .push-nuget-template
+  before_script:
+    - !reference [default, before_script]
+    - |
+      function push_package() {
+        local projectFolder=$1
+        local project=$2
+
+        dotnet pack -c $BuildConfiguration "${project:=$projectFolder/$projectFolder.csproj}" --no-restore
+        dotnet nuget push "$projectFolder/bin/$BuildConfiguration/*.nupkg" -s "raypro-baget" -k $NugetApiKey --skip-duplicate
+      }
   script:
     - push_package 'Tgs.StationLetter.Client'
   artifacts:
