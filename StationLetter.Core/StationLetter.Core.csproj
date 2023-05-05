@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tgs.StationLetter.Common\Tgs.StationLetter.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="Protos\station_letter.proto" Access="Internal" GrpcServices="None" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
-﻿using ExpectedObjects;
+﻿using System.Text.Json;
+using ExpectedObjects;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,6 @@ using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Tgs.StationLetterService.IntegrationTests;
@@ -317,7 +317,7 @@ public class StationLetterApiTests
 		var actual = await sut.ListStationLettersAsync(user).ToArrayAsync();
 
 		// Assert
-		expected.ToExpectedObject().ShouldMatch(actual);
+		Assert.Equal(expected, actual);
 	}
 
 	[Fact]
@@ -406,5 +406,301 @@ public class StationLetterApiTests
 
 		// Assert
 		Assert.Equal(expected, actual);
+	}
+
+	[Fact]
+	public async Task 取得User的寄件列表()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddHttpClientLoggingHandler()));
+
+		var httpClient = web.CreateDefaultClient(web.Services.ResolveLoggingHandler<StationLetterClient>());
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow
+			}
+		};
+		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows
+			.Select(row => new Client.DeliveryLetter(
+				row.Id,
+				row.Sender,
+				Enum.Parse<ReceiverType>(row.ReceiverType),
+				JsonDocument.Parse(row.Receiver!),
+				row.Subject,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn))
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListDeliverLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject(ctx => ctx.ArrayMemberShouldEqual(
+			o => o,
+			itemCtx =>
+			{
+				_ = itemCtx.IgnoreEqualsOverride();
+				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
+			})).ShouldMatch(actual);
+	}
+
+	[Fact]
+	public async Task 取得User的寄件列表_會依照SentOn排序()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddHttpClientLoggingHandler()));
+
+		var httpClient = web.CreateDefaultClient(web.Services.ResolveLoggingHandler<StationLetterClient>());
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow.AddDays(-81D)
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow.AddDays(-51D)
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow.AddDays(-10D)
+			}
+		};
+		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows
+			.Select(row => new Client.DeliveryLetter(
+				row.Id,
+				row.Sender,
+				Enum.Parse<ReceiverType>(row.ReceiverType),
+				JsonDocument.Parse(row.Receiver!),
+				row.Subject,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn))
+			.OrderByDescending(row => row.SentOn)
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListDeliverLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject(ctx => ctx.ArrayMemberShouldEqual(
+			o => o,
+			itemCtx =>
+			{
+				_ = itemCtx.IgnoreEqualsOverride();
+				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
+			})).ShouldEqual(actual);
+		Assert.Equal(
+			expected.Select(item => item.SentOn).ToArray(),
+			actual.Select(item => item.SentOn).ToArray());
+	}
+
+	[Fact]
+	public async Task 取得User的寄件列表_只能列出90天的資料()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddHttpClientLoggingHandler()));
+
+		var httpClient = web.CreateDefaultClient(web.Services.ResolveLoggingHandler<StationLetterClient>());
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow.AddDays(-91D)
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow.AddDays(-51D)
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow.AddDays(-10D)
+			}
+		};
+		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows.Skip(1)
+			.Select(row => new Client.DeliveryLetter(
+				row.Id,
+				row.Sender,
+				Enum.Parse<ReceiverType>(row.ReceiverType),
+				JsonDocument.Parse(row.Receiver!),
+				row.Subject,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn))
+			.OrderByDescending(row => row.SentOn)
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListDeliverLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject(ctx => ctx.ArrayMemberShouldEqual(
+			o => o,
+			itemCtx =>
+			{
+				_ = itemCtx.IgnoreEqualsOverride();
+				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
+			})).ShouldEqual(actual);
+		Assert.Equal(
+			expected.Select(item => item.SentOn).ToArray(),
+			actual.Select(item => item.SentOn).ToArray());
+	}
+
+	[Fact]
+	public async Task 取得寄件備份內容()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var letterId = Guid.NewGuid();
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var row = new StationLetterDelivery
+		{
+			Id = letterId,
+			Sender = "test4",
+			ReceiverType = ReceiverType.Receivers.ToString(),
+			Receiver = """["test1"]""",
+			Subject = "t3",
+			Content = "t3t3",
+			SentOn = DateTime.UtcNow.AddDays(-81D),
+		};
+		_ = await dbContext.StationLetterDeliveries.AddAsync(row);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = new Client.DeliveryLetter(
+			letterId,
+			row.Sender,
+			Enum.Parse<ReceiverType>(row.ReceiverType),
+			JsonDocument.Parse(row.Receiver),
+			row.Subject,
+			row.Content,
+			row.ComeFrom,
+			row.SentOn);
+
+		// Act
+		var actual = await sut.GetDeliveryLetterAsync(letterId);
+
+		// Assert
+		expected.ToExpectedObject(ctx =>
+		{
+			_ = ctx.IgnoreEqualsOverride();
+			_ = ctx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
+		}).ShouldEqual(actual);
 	}
 }

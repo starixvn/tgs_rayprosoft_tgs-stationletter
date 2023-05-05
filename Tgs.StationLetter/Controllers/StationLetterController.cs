@@ -65,13 +65,28 @@ public class StationLetterController : ControllerBase
 	}
 
 	[HttpGet("{letterId:Guid}", Name = "GetStationLetterById")]
-	public ValueTask<Letter?> GetLetterByIdAsync(
+	public async ValueTask<StationLetterViewModel?> GetLetterByIdAsync(
 		[FromServices] IGetService<GetLetterByIdQuery, Letter?> getService,
 		Guid letterId)
 	{
 		var query = new GetLetterByIdQuery(letterId);
 
-		return getService.GetAsync(query, HttpContext.RequestAborted);
+		var letter = await getService.GetAsync(query, HttpContext.RequestAborted).ConfigureAwait(false);
+
+		return letter is null
+			? null
+			: new StationLetterViewModel
+			{
+				Id = letter.Id,
+				Sender = letter.Sender,
+				Receiver = letter.Receiver,
+				Subject = letter.Subject,
+				Quotation = letter.Quotation,
+				Content = letter.Content,
+				SentOn = letter.SentOn,
+				HaveRead = letter.HaveRead,
+				Replied = letter.Replied
+			};
 	}
 
 	[HttpPatch("{letterId}:read", Name = "MarkStationLetterHaveRead")]

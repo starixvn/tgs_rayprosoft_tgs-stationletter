@@ -13,7 +13,7 @@ public partial class StationLetterDelivery
 
     public string Content { get; set; } = null!;
 
-    public string Receiver { get; set; } = null!;
+    public string? Receiver { get; set; }
 
     public string ReceiverType { get; set; } = null!;
 

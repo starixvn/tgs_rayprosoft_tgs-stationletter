@@ -155,10 +155,35 @@ internal class TgsRepository : ITgsRepository
 				deliveryRow.Id,
 				deliveryRow.Sender,
 				Enum.Parse<ReceiverType>(deliveryRow.ReceiverType),
-				JsonDocument.Parse(deliveryRow.Receiver),
+				string.IsNullOrEmpty(deliveryRow.Receiver)
+					? null
+					: JsonDocument.Parse(deliveryRow.Receiver),
 				deliveryRow.Subject,
 				deliveryRow.Content,
 				deliveryRow.ComeFrom,
 				deliveryRow.SentOn);
+	}
+
+	public IAsyncEnumerable<DeliveryLetter> QueryDeliveryLettersByUserAsync(string user, CancellationToken cancellationToken = default)
+	{
+		var queryDate = DateTime.UtcNow.AddDays(-90D);
+
+		return _dbContext.StationLetterDeliveries
+			.Where(row => row.Sender == user
+				&& row.SentOn >= queryDate)
+			.OrderByDescending(row => row.SentOn)
+			.ToAsyncEnumerable()
+			.Select(row => new DeliveryLetter(
+				row.Id,
+				row.Sender,
+				Enum.Parse<ReceiverType>(row.ReceiverType),
+				string.IsNullOrEmpty(row.Receiver)
+					? null
+					: JsonDocument.Parse(row.Receiver, default),
+				row.Subject,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn))
+			.Do(_ => cancellationToken.ThrowIfCancellationRequested());
 	}
 }

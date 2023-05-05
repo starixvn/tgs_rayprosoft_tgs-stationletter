@@ -1,4 +1,5 @@
-﻿using FluentdForward.OpenTelemetry.MessagePack;
+﻿using System.Text.Json.Serialization;
+using FluentdForward.OpenTelemetry.MessagePack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Instrumentation.AspNetCore;
@@ -32,7 +33,8 @@ builder.Logging
 builder.Services
 	.AddRouting(routeOpt => routeOpt.LowercaseUrls = true)
 	.AddControllers()
-	.AddMvcOptions(mvcOptions => mvcOptions.AddWebApiToolkitFilters());
+	.AddMvcOptions(mvcOptions => mvcOptions.AddWebApiToolkitFilters())
+	.AddJsonOptions(jsonOpt => jsonOpt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services
 	.AddSingleton(sp => new RedisConnectionManager(

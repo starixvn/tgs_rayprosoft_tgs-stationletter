@@ -26,7 +26,7 @@ public class DispatchReceiversLetterHandler : IMessageHandler
 		if (deliveryLetter is null)
 			return;
 
-		var receivers = deliveryLetter.Receiver.Deserialize<string[]>(StationLetterUtility.SerializerOptions);
+		var receivers = deliveryLetter.Receiver?.Deserialize<string[]>(StationLetterUtility.SerializerOptions);
 		if (receivers is null || receivers.Length == 0)
 			return;
 

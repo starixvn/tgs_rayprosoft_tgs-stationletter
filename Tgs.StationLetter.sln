@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.StationLetter.Integrati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.StationLetter.Client", "Tgs.StationLetter.Client\Tgs.StationLetter.Client.csproj", "{CC4FC5E0-57B0-4B7F-9505-35DED229C6F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tgs.StationLetter.Common", "Tgs.StationLetter.Common\Tgs.StationLetter.Common.csproj", "{DAEC23C8-4968-4C27-AD93-2DB30ED7A243}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{CC4FC5E0-57B0-4B7F-9505-35DED229C6F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC4FC5E0-57B0-4B7F-9505-35DED229C6F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC4FC5E0-57B0-4B7F-9505-35DED229C6F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAEC23C8-4968-4C27-AD93-2DB30ED7A243}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAEC23C8-4968-4C27-AD93-2DB30ED7A243}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAEC23C8-4968-4C27-AD93-2DB30ED7A243}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAEC23C8-4968-4C27-AD93-2DB30ED7A243}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

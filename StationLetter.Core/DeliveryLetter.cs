@@ -5,7 +5,7 @@ public record DeliveryLetter(
 	Guid Id,
 	string Sender,
 	ReceiverType ReceiverType,
-	JsonDocument Receiver,
+	JsonDocument? Receiver,
 	string Subject,
 	string Content,
 	Guid? ComeFrom,

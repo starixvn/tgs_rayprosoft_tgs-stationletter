@@ -11,4 +11,8 @@ public interface IStationLetterClient
 	ValueTask ReplyStationLetterAsync(Guid letterId, ReplyStationLetterRequest request, CancellationToken cancellationToken = default);
 
 	ValueTask SendStationLetterAsync(StationLetterRequest request, CancellationToken cancellationToken = default);
+
+	IAsyncEnumerable<DeliveryLetter> ListDeliverLettersAsync(string sender, CancellationToken cancellationToken = default);
+
+	ValueTask<DeliveryLetter?> GetDeliveryLetterAsync(Guid deliveryId, CancellationToken cancellationToken = default);
 }
