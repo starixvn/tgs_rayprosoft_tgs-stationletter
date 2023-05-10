@@ -1,4 +1,5 @@
 ﻿using ExpectedObjects;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.MessageQueue;
 using Tgs.StationLetterService;
@@ -47,10 +48,13 @@ public class SendStationLetterTests
 	public async Task 回信()
 	{
 		// Arrange
-		var fakeMailSlot = Substitute.For<IMailSlot>();
 		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
 
-		var sut = new ReplyStationLetterCommandService(fakeMailSlot, fakeTgsRepository);
+		var sut = new ReplyStationLetterCommandService(
+			fakeTgsRepository,
+			fakeMessageSender,
+			NullLogger<ReplyStationLetterCommandService>.Instance);
 
 		var command = new ReplyStationLetterCommand(
 			"receiver",
@@ -58,11 +62,25 @@ public class SendStationLetterTests
 			Guid.NewGuid(),
 			"ddeeff");
 
+		_ = fakeTgsRepository.GetLetterAsync(Arg.Is(command.ReplyLetterId))
+			.Returns(new Letter(
+				command.ReplyLetterId,
+				command.Receiver,
+				command.Sender,
+				"ttt",
+				null,
+				"ccc",
+				null,
+				DateTime.UtcNow,
+				DateTime.UtcNow,
+				false,
+				false));
+
 		var expected = new
 		{
 			command.Sender,
-			Receivers = new[] { command.Receiver },
-			Subject = (string?)null,
+			ReceiverType = ReceiverType.Receivers,
+			Subject = "Re:ttt",
 			command.Content,
 			ComeFrom = command.ReplyLetterId
 		};
@@ -71,9 +89,11 @@ public class SendStationLetterTests
 		await sut.ExecuteAsync(command);
 
 		// Assert
-		_ = fakeMailSlot.Received(1)
-			.DeliveryAsync(Arg.Is<SendLetter>(
-				sendLetter => expected.ToExpectedObject().Matches(sendLetter)));
+		_ = fakeTgsRepository.Received(1)
+			.InsertDeliveryLetterAsync(Arg.Is<DeliveryLetter>(
+				delivery => expected.ToExpectedObject().Matches(delivery)));
+		_ = fakeMessageSender.Received(1)
+			.PublishAsync(Arg.Is("tgs.station-letter.dispatch.receivers"), Arg.Any<ReadOnlyMemory<byte>>());
 		_ = fakeTgsRepository.Received(1)
 			.SetLetterRepliedAsync(Arg.Is(command.ReplyLetterId));
 	}

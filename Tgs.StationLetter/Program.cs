@@ -48,8 +48,18 @@ builder.Services
 	.AddNatsMessageQueue(natsConfig => natsConfig
 		.ConfigQueueOptions((options, _) => options.Url =
 			builder.Configuration.GetConnectionString("Nats")!)
-		.AddHandler(ProcessorTypes.SendLetterHandlerType, "tgs.station-letter.delivery", "tgs.station-letter.delivery")
-		.AddHandler(ProcessorTypes.InboxLettersHandlerType, "tgs.station-letter.inbox", "tgs.station-letter.inbox"))
+		.AddHandler(
+			ProcessorTypes.SendLetterHandlerType,
+			"tgs.station-letter.delivery",
+			"tgs.station-letter.delivery")
+		.AddHandler(
+			ProcessorTypes.InboxLettersHandlerType,
+			"tgs.station-letter.inbox",
+			"tgs.station-letter.inbox")
+		.AddHandler(
+			ProcessorTypes.DispatchReceiversLetterHandlerType,
+			"Tgs.station-letter.dispatch.receivers",
+			"Tgs.station-letter.dispatch.receivers"))
 	.AddNatsGlobPatternExchange("*");
 
 builder.Services

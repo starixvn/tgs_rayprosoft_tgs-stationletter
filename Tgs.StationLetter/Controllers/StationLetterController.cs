@@ -26,6 +26,14 @@ public class StationLetterController : ControllerBase
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 
+	[HttpPut(":group", Name = "SendGroupLetters")]
+	[SuccessStatusCode(HttpStatusCode.Accepted)]
+	public void SendGroupLetters(
+		CreateGroupStationLetterViewModel viewModel)
+	{
+
+	}
+
 	[HttpPut("{letterId}", Name = "ReplyStationLetter")]
 	[SuccessStatusCode(HttpStatusCode.Accepted)]
 	public ValueTask ReplyLetterAsync(

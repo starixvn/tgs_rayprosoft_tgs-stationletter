@@ -5,11 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
+using Tgs.MessageQueue;
 using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
 using Xunit.Abstractions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Tgs.StationLetterService.IntegrationTests;
 
@@ -66,13 +68,15 @@ public class StationLetterApiTests
 	public async Task 回覆站內信()
 	{
 		// Arrange
-		var fakeMailSlot = Substitute.For<IMailSlot>();
+		var fakeTgsRepository = Substitute.For<ITgsRepository>();
+		var fakeMessageSender = Substitute.For<IMessageSender>();
 
 		await using var web = StationLetterTestHost.Factory
 			.WithWebHostBuilder(hostBuilder => hostBuilder
 				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
 				.ConfigureServices(services => services
-					.AddSingleton(fakeMailSlot)));
+					.AddSingleton(fakeTgsRepository)
+					.AddSingleton(fakeMessageSender)));
 
 		var httpClient = web.CreateClient();
 
@@ -81,11 +85,25 @@ public class StationLetterApiTests
 		var letterId = Guid.NewGuid();
 		var request = new ReplyStationLetterRequest("receiver", "sender", "987654321");
 
+		_ = fakeTgsRepository.GetLetterAsync(Arg.Is(letterId), Arg.Any<CancellationToken>())
+			.Returns(new Letter(
+				letterId,
+				request.Receiver,
+				request.Sender,
+				"ttt",
+				null,
+				"ccc",
+				null,
+				DateTime.UtcNow,
+				DateTime.UtcNow,
+				false,
+				false));
+
 		var expected = new
 		{
 			request.Sender,
-			Receivers = new[] { request.Receiver },
-			Subject = (string?)null,
+			ReceiverType = ReceiverType.Receivers,
+			Subject = "Re:ttt",
 			request.Content,
 			ComeFrom = letterId
 		}.ToExpectedObject();
@@ -94,10 +112,16 @@ public class StationLetterApiTests
 		await sut.ReplyStationLetterAsync(letterId, request);
 
 		// Assert
-		_ = fakeMailSlot.Received(1)
-			.DeliveryAsync(
-				Arg.Is<SendLetter>(l => expected.Matches(l)),
+		_ = fakeTgsRepository.Received(1)
+			.InsertDeliveryLetterAsync(Arg.Is<DeliveryLetter>(
+				delivery => expected.Matches(delivery)), Arg.Any<CancellationToken>());
+		_ = fakeMessageSender.Received(1)
+			.PublishAsync(
+				Arg.Is("tgs.station-letter.dispatch.receivers"),
+				Arg.Any<ReadOnlyMemory<byte>>(),
 				Arg.Any<CancellationToken>());
+		_ = fakeTgsRepository.Received(1)
+			.SetLetterRepliedAsync(Arg.Is(letterId), Arg.Any<CancellationToken>());
 	}
 
 	[Fact]
