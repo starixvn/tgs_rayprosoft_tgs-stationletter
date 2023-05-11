@@ -23,7 +23,12 @@ internal class StationLetterClient : IStationLetterClient
 	public async ValueTask SendStationLetterAsync(StationLetterRequest request, CancellationToken cancellationToken = default)
 		=> await _httpClient.PutAsJsonAsync(
 			"/station-letter",
-			request,
+			new SendStationLetterRequest(
+				request.Sender,
+				ReceiverType.Receivers,
+				JsonSerializer.SerializeToDocument(request.Receivers, StationLetterUtility.SerializerOptions),
+				request.Subject,
+				request.Content),
 			_JsonSerializerOptions,
 			cancellationToken)
 			.ToAsyncEnumerable()

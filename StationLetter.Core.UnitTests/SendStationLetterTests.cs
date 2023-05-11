@@ -1,4 +1,5 @@
-﻿using ExpectedObjects;
+﻿using System.Text.Json;
+using ExpectedObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.MessageQueue;
@@ -20,7 +21,8 @@ public class SendStationLetterTests
 
 		var command = new SendStationLetterCommand(
 			"sender",
-			new[] { "receiver" },
+			ReceiverType.Receivers,
+			JsonSerializer.SerializeToDocument(new[] { "receiver" }, StationLetterUtility.SerializerOptions),
 			"test",
 			"aabbcc");
 

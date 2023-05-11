@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 using Tgs.MessageQueue;
 using Tgs.ServiceUtility;
 using Tgs.StationLetter.Protos;
@@ -23,7 +22,7 @@ internal class SendStationLetterCommandService : ICommandService<SendStationLett
 			Guid.NewGuid(),
 			command.Sender,
 			ReceiverType.Receivers,
-			JsonSerializer.SerializeToDocument(command.Receivers, StationLetterUtility.SerializerOptions),
+			command.Receiver,
 			command.Subject,
 			command.Content,
 			null,

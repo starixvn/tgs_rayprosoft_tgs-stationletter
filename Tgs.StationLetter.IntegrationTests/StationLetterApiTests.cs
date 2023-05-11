@@ -11,7 +11,6 @@ using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
 using Xunit.Abstractions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Tgs.StationLetterService.IntegrationTests;
 
@@ -49,7 +48,7 @@ public class StationLetterApiTests
 		var expected = new
 		{
 			request.Sender,
-			request.Receivers,
+			ReceiverType = ReceiverType.Receivers,
 			request.Subject,
 			request.Content
 		}.ToExpectedObject();

@@ -1,6 +1,9 @@
-﻿namespace Tgs.StationLetterService.ApplicationServices;
+﻿using System.Text.Json;
+
+namespace Tgs.StationLetterService.ApplicationServices;
 public record SendStationLetterCommand(
 	string Sender,
-	IEnumerable<string> Receivers,
+	ReceiverType ReceiverType,
+	JsonDocument? Receiver,
 	string Subject,
 	string Content);
