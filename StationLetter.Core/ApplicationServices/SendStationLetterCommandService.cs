@@ -21,7 +21,7 @@ internal class SendStationLetterCommandService : ICommandService<SendStationLett
 		var deliveryLetter = new DeliveryLetter(
 			Guid.NewGuid(),
 			command.Sender,
-			ReceiverType.Receivers,
+			command.ReceiverType,
 			command.Receiver,
 			command.Subject,
 			command.Content,

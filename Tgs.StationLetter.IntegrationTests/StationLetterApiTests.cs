@@ -10,6 +10,7 @@ using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Tgs.StationLetterService.IntegrationTests;
@@ -55,6 +56,45 @@ public class StationLetterApiTests
 
 		// Act
 		await sut.SendStationLetterAsync(request);
+
+		// Assert
+		_ = fakeSendStationLetterCommandService.Received(1)
+			.ExecuteAsync(
+				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
+				Arg.Any<CancellationToken>());
+	}
+
+	[Fact]
+	public async Task 送出全部玩家站內信()
+	{
+		// Arrange
+		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
+
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddSingleton(fakeSendStationLetterCommandService)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var request = new BrandAllPlayersStationLetterRequest(
+			"GPI",
+			"abc",
+			"aabbcc");
+
+		var expected = new
+		{
+			Sender = request.BrandCode,
+			ReceiverType = ReceiverType.BrandAllPlayers,
+			request.Subject,
+			request.Content
+		}.ToExpectedObject();
+
+		// Act
+		await sut.SendBrandAllPlayersStationLetterAsync(request);
 
 		// Assert
 		_ = fakeSendStationLetterCommandService.Received(1)

@@ -20,21 +20,15 @@ internal class StationLetterClient : IStationLetterClient
 		_httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 	}
 
-	public async ValueTask SendStationLetterAsync(StationLetterRequest request, CancellationToken cancellationToken = default)
-		=> await _httpClient.PutAsJsonAsync(
-			"/station-letter",
+	public ValueTask SendStationLetterAsync(StationLetterRequest request, CancellationToken cancellationToken = default)
+		=> SendStationLettersAsync(
 			new SendStationLetterRequest(
 				request.Sender,
 				ReceiverType.Receivers,
 				JsonSerializer.SerializeToDocument(request.Receivers, StationLetterUtility.SerializerOptions),
 				request.Subject,
 				request.Content),
-			_JsonSerializerOptions,
-			cancellationToken)
-			.ToAsyncEnumerable()
-			.Do(response => response.EnsureSuccessStatusCode())
-			.FirstAsync(cancellationToken: cancellationToken)
-			.ConfigureAwait(false);
+			cancellationToken);
 
 	public async ValueTask ReplyStationLetterAsync(
 		Guid letterId,
@@ -88,4 +82,25 @@ internal class StationLetterClient : IStationLetterClient
 			$"/delivery-box/{deliveryId}",
 			_JsonSerializerOptions,
 			cancellationToken).ConfigureAwait(false);
+
+	public ValueTask SendBrandAllPlayersStationLetterAsync(BrandAllPlayersStationLetterRequest request, CancellationToken cancellationToken = default)
+		=> SendStationLettersAsync(
+			new SendStationLetterRequest(
+				request.BrandCode,
+				ReceiverType.BrandAllPlayers,
+				null,
+				request.Subject,
+				request.Content),
+			cancellationToken);
+
+	private async ValueTask SendStationLettersAsync(SendStationLetterRequest request, CancellationToken cancellationToken = default)
+		=> await _httpClient.PutAsJsonAsync(
+			"/station-letter",
+			request,
+			_JsonSerializerOptions,
+			cancellationToken)
+			.ToAsyncEnumerable()
+			.Do(response => response.EnsureSuccessStatusCode())
+			.FirstAsync(cancellationToken: cancellationToken)
+			.ConfigureAwait(false);
 }

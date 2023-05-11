@@ -3,5 +3,6 @@
 public enum ReceiverType
 {
 	None = 0,
-	Receivers
+	Receivers,
+	BrandAllPlayers
 }
