@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.ViewModels;
+using Tgs.WebApi.Toolkits;
 
 namespace Tgs.StationLetterService.Controllers;
 
@@ -53,5 +55,22 @@ public class DeliveryController : ControllerBase
 				ComeFrom = deliveryLetter.ComeFrom,
 				SentOn = deliveryLetter.SentOn
 			};
+	}
+
+	[HttpPut(Name = "PostStationLetter")]
+	[SuccessStatusCode(HttpStatusCode.Accepted)]
+	public ValueTask DeliveryStationLetterAsync(
+		[FromServices] ICommandService<DeliveryStationLetterCommand> postService,
+		[FromBody] PostStationLetterViewModel viewModel)
+	{
+		var command = new DeliveryStationLetterCommand(
+			viewModel.Sender,
+			viewModel.Receivers,
+			viewModel.Subject,
+			viewModel.Content,
+			viewModel.ComeFrom,
+			viewModel.SentOn);
+
+		return postService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
 }

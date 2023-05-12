@@ -766,4 +766,47 @@ public class StationLetterApiTests
 			_ = ctx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
 		}).ShouldEqual(actual);
 	}
+
+	[Fact]
+	public async Task 中繼傳送信件()
+	{
+		// Arrange
+		var fakeDeliveryStationLetterCommandService = Substitute.For<ICommandService<DeliveryStationLetterCommand>>();
+
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddSingleton(fakeDeliveryStationLetterCommandService)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var request = new PostStationLetterRequest(
+			"sender",
+			new[] { "receiver" },
+			"abc",
+			"aabbcc",
+			null,
+			DateTime.UtcNow);
+
+		var expected = new DeliveryStationLetterCommand(
+			request.Sender,
+			request.Receivers,
+			request.Subject,
+			request.Content,
+			request.ComeFrom,
+			request.SentOn).ToExpectedObject(
+			ctx => ctx.IgnoreEqualsOverride());
+
+		// Act
+		await sut.PostStationLetterAsync(request);
+
+		// Assert
+		_ = fakeDeliveryStationLetterCommandService.Received(1)
+			.ExecuteAsync(
+				Arg.Is<DeliveryStationLetterCommand>(cmd => expected.Matches(cmd)),
+				Arg.Any<CancellationToken>());
+	}
 }

@@ -47,13 +47,15 @@ internal class DispatchBrandAllPlayersLetterHandler : IMessageHandler
 			.ForEachAwaitAsync(
 				async list =>
 				{
-					var request = new StationLetterRequest(
+					var request = new PostStationLetterRequest(
 						deliveryLetter.Sender,
 						list.Select(player => player.PlayerCode),
 						deliveryLetter.Subject,
-						deliveryLetter.Content);
+						deliveryLetter.Content,
+						deliveryLetter.ComeFrom,
+						deliveryLetter.SentOn);
 
-					await _stationLetterClient.SendStationLetterAsync(
+					await _stationLetterClient.PostStationLetterAsync(
 						request,
 						cancellationToken).ConfigureAwait(false);
 				},

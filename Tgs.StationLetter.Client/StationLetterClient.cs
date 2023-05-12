@@ -93,8 +93,19 @@ internal class StationLetterClient : IStationLetterClient
 				request.Content),
 			cancellationToken);
 
-	private async ValueTask SendStationLettersAsync(SendStationLetterRequest request, CancellationToken cancellationToken = default)
+	public async ValueTask PostStationLetterAsync(PostStationLetterRequest request, CancellationToken cancellationToken = default)
 		=> await _httpClient.PutAsJsonAsync(
+			"/delivery-box",
+			request,
+			_JsonSerializerOptions,
+			cancellationToken)
+			.ToAsyncEnumerable()
+			.Do(response => response.EnsureSuccessStatusCode())
+			.FirstAsync(cancellationToken)
+			.ConfigureAwait(false);
+
+	private async ValueTask SendStationLettersAsync(SendStationLetterRequest request, CancellationToken cancellationToken = default)
+			=> await _httpClient.PutAsJsonAsync(
 			"/station-letter",
 			request,
 			_JsonSerializerOptions,

@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Tgs.ServiceUtility;
+﻿using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 
@@ -74,16 +73,7 @@ internal class InternalStationLetterClient : IStationLetterClient
 	}
 
 	public ValueTask SendStationLetterAsync(StationLetterRequest request, CancellationToken cancellationToken = default)
-	{
-		var command = new SendStationLetterCommand(
-			request.Sender,
-			ReceiverType.Receivers,
-			JsonSerializer.SerializeToDocument(request.Receivers, StationLetterUtility.SerializerOptions),
-			request.Subject,
-			request.Content);
-
-		return _serviceCoordinator.ExecuteAsync(command, cancellationToken);
-	}
+		=> throw new NotSupportedException();
 
 	public ValueTask SendBrandAllPlayersStationLetterAsync(BrandAllPlayersStationLetterRequest request, CancellationToken cancellationToken = default)
 		=> throw new NotSupportedException();
@@ -123,5 +113,18 @@ internal class InternalStationLetterClient : IStationLetterClient
 				deliveryLetter.Content,
 				deliveryLetter.ComeFrom,
 				deliveryLetter.SentOn);
+	}
+
+	public ValueTask PostStationLetterAsync(PostStationLetterRequest request, CancellationToken cancellationToken = default)
+	{
+		var command = new DeliveryStationLetterCommand(
+			request.Sender,
+			request.Receivers,
+			request.Subject,
+			request.Content,
+			request.ComeFrom,
+			request.SentOn);
+
+		return _serviceCoordinator.ExecuteAsync(command, cancellationToken);
 	}
 }

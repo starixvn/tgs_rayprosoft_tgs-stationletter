@@ -41,4 +41,36 @@ public class DeliveryLetterTests
 		_ = fakeTgsRepository.Received(1)
 			.GetDeliveryLetterAsync(Arg.Is(query.DeliveryId));
 	}
+
+	[Fact]
+	public async Task 傳送信件()
+	{
+		// Arrange
+		var fakeMailSlot = Substitute.For<IMailSlot>();
+
+		var sut = new DeliveryStationLetterCommandService(fakeMailSlot);
+
+		var command = new DeliveryStationLetterCommand(
+			"GPI",
+			new[] { "test1" },
+			"ttt",
+			"cccc",
+			null,
+			DateTime.UtcNow);
+
+		var sendLetter = new SendLetter(
+			command.Sender,
+			command.Receivers,
+			command.Subject,
+			command.Content,
+			command.ComeFrom,
+			command.SentOn);
+
+		// Act
+		await sut.ExecuteAsync(command);
+
+		// Assert
+		_ = fakeMailSlot.Received(1)
+			.DeliveryAsync(Arg.Is(sendLetter));
+	}
 }
