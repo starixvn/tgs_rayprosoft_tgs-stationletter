@@ -7,7 +7,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Tgs.StationLetterService;
+using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.MessageQueue;
+using Tgs.StationLetterService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +46,11 @@ builder.Services
 		dbConfig => dbConfig
 			.UseNpgsql("name=Tgs"),
 		sp => sp.GetRequiredService<RedisConnectionManager>().Database)
+	.AddBrandServiceClient((brandOptions, _) => brandOptions.BrandCertificateBaseUrl =
+		builder.Configuration.GetValue<Uri>("BrandAllPlayers:BrandServiceBaseUrl")!)
+	.AddPlayerServiceClient((playerOptions, _) => playerOptions.BaseUrl =
+		builder.Configuration.GetValue<Uri>("BrandAllPlayers:PlayerServiceBaseUrl")!)
+	.AddTransient<IStationLetterClient, InternalStationLetterClient>()
 	.AddMessageQueue()
 	.AddNatsMessageQueue(natsConfig => natsConfig
 		.ConfigQueueOptions((options, _) => options.Url =
@@ -58,8 +65,12 @@ builder.Services
 			"tgs.station-letter.inbox")
 		.AddHandler(
 			ProcessorTypes.DispatchReceiversLetterHandlerType,
-			"Tgs.station-letter.dispatch.receivers",
-			"Tgs.station-letter.dispatch.receivers"))
+			"tgs.station-letter.dispatch.receivers",
+			"tgs.station-letter.dispatch.receivers")
+		.AddHandler(
+			Tgs.StationLetter.BrandAllPlayers.MessageQueue.ProcessorTypes.DispatchBrandAllPlayersLetterHandlerType,
+			"tgs.station-letter.dispatch.brandallplayers",
+			"tgs.station-letter.dispatch.brandallplayers"))
 	.AddNatsGlobPatternExchange("*");
 
 builder.Services

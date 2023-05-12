@@ -30,6 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\StationLetter.BrandAllPlayers.Core\StationLetter.BrandAllPlayers.Core.csproj" />
 		<ProjectReference Include="..\StationLetter.Core\StationLetter.Core.csproj" />
 		<ProjectReference Include="..\StationLetter.Repositories\StationLetter.Repositories.csproj" />
 	</ItemGroup>
