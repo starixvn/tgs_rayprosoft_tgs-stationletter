@@ -48,6 +48,7 @@ Selector labels
 {{- define "station-letter.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "station-letter.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+tgs.kind: station-letter
 {{- end }}
 
 {{/*
