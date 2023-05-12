@@ -12,7 +12,7 @@ namespace StationLetter.BrandAllPlayers.Core.UnitTests;
 public class DispatchBrandAllPlayersLetterHandlerTests
 {
 	[Fact]
-	public async Task 處理發送全部玩家要求Async()
+	public async Task 處理發送全部玩家要求()
 	{
 		// Arrange
 		var fakeStationLetterClient = Substitute.For<IStationLetterClient>();
@@ -88,6 +88,6 @@ public class DispatchBrandAllPlayersLetterHandlerTests
 
 		// Assert
 		_ = fakeStationLetterClient.Received(1)
-			.SendStationLetterAsync(Arg.Any<StationLetterRequest>());
+			.PostStationLetterAsync(Arg.Any<PostStationLetterRequest>());
 	}
 }
