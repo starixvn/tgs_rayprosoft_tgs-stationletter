@@ -7,4 +7,24 @@
     <RootNamespace>Tgs.StationLetterService</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Protos\station_letter.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.23.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.54.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PhoenixToolkits.Protobuf.ExtendTypes" Version="0.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\station_letter.proto">
+      <Access>Public</Access>
+      <GrpcServices>None</GrpcServices>
+    </Protobuf>
+  </ItemGroup>
+
 </Project>
