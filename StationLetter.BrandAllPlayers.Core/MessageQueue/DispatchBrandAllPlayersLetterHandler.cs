@@ -42,7 +42,13 @@ internal class DispatchBrandAllPlayersLetterHandler : IMessageHandler
 		if (brand is null)
 			return;
 
-		await _playerServiceClient.QueryPlayerListAsync(brand.Id, new PlayerListQuery(), cancellationToken)
+		await _playerServiceClient.QueryPlayerListAsync(
+			brand.Id,
+			new PlayerListQuery
+			{
+				Status = PlayerStatus.Enabled
+			},
+			cancellationToken)
 			.Buffer(1000)
 			.ForEachAwaitAsync(
 				async list =>
