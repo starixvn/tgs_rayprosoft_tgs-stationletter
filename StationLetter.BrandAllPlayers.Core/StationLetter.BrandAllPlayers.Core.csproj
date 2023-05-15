@@ -14,7 +14,7 @@
     </PackageReference>
     <PackageReference Include="Tgs.BrandCertificateClient" Version="0.0.26" />
     <PackageReference Include="Tgs.MessageQueue" Version="2.3.0" />
-    <PackageReference Include="Tgs.PlayerService.Client" Version="0.0.29" />
+    <PackageReference Include="Tgs.PlayerService.Client" Version="0.0.30" />
   </ItemGroup>
 
   <ItemGroup>

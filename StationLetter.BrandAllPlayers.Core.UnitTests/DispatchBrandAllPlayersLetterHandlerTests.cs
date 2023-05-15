@@ -48,40 +48,12 @@ public class DispatchBrandAllPlayersLetterHandlerTests
 				Code = "GPI"
 			});
 
-		_ = fakePlayerServiceClient.QueryPlayerListAsync(Arg.Is(brandId), Arg.Any<PlayerListQuery>())
+		_ = fakePlayerServiceClient.ListPlayerCodesByBrandIdAsync(Arg.Is(brandId))
 			.Returns(new[] {
-				new PlayerListItem(
-					"test1",
-					"test1",
-					null,
-					null,
-					null,
-					null,
-					null,
-					PlayerStatus.Enabled,
-					null),
-				new PlayerListItem(
-					"test2",
-					"test2",
-					null,
-					null,
-					null,
-					null,
-					null,
-					PlayerStatus.Enabled,
-					null),
-				new PlayerListItem(
-					"test3",
-					"test3",
-					null,
-					null,
-					null,
-					null,
-					null,
-					PlayerStatus.Enabled,
-					null)
+				"test1",
+				"test2",
+				"test3"
 			}.ToAsyncEnumerable());
-		;
 
 		// Act
 		await sut.HandleAsync(request.ToByteArray());
