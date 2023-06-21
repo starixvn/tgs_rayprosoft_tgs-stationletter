@@ -22,4 +22,6 @@ public partial class StationLetterDelivery
     public DateTime SentOn { get; set; }
 
     public string Subject { get; set; } = null!;
+
+    public string Operator { get; set; } = null!;
 }

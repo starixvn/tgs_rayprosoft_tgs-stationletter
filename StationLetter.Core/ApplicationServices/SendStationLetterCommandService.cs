@@ -26,7 +26,8 @@ internal class SendStationLetterCommandService : ICommandService<SendStationLett
 			command.Subject,
 			command.Content,
 			null,
-			DateTime.UtcNow);
+			DateTime.UtcNow,
+			command.Operator);
 
 		await _tgsRepository.InsertDeliveryLetterAsync(
 			deliveryLetter,

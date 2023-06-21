@@ -2,4 +2,5 @@
 public record BrandAllPlayersStationLetterRequest(
 	string BrandCode,
 	string Subject,
-	string Content);
+	string Content,
+	string Operator);

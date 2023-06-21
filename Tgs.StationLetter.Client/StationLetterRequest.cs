@@ -3,4 +3,5 @@ public record StationLetterRequest(
 	string Sender,
 	IEnumerable<string> Receivers,
 	string Subject,
-	string Content);
+	string Content,
+	string Operator);

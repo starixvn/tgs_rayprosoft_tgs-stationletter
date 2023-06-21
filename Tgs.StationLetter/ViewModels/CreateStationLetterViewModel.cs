@@ -13,4 +13,6 @@ public class CreateStationLetterViewModel
 	public required string Subject { get; set; }
 
 	public required string Content { get; set; }
+
+	public required string Operator { get; set; }
 }

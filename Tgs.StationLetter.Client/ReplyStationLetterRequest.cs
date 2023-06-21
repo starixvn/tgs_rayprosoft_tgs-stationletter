@@ -2,4 +2,5 @@
 public record ReplyStationLetterRequest(
 	string Sender,
 	string Receiver,
-	string Content);
+	string Content,
+	string Operator);

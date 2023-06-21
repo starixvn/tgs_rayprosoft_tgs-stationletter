@@ -38,7 +38,8 @@ public class DispatchBrandAllPlayersLetterHandlerTests
 				"ttt",
 				"cccc",
 				null,
-				DateTime.UtcNow));
+				DateTime.UtcNow,
+				"operator"));
 
 		var brandId = Guid.NewGuid();
 		_ = fakeBrandServiceClient.GetBrandInfoByCodeAsync(Arg.Is("GPI"))

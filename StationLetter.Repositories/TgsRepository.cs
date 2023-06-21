@@ -137,7 +137,8 @@ internal class TgsRepository : ITgsRepository
 				Subject = deliveryLetter.Subject,
 				Content = deliveryLetter.Content,
 				ComeFrom = deliveryLetter.ComeFrom,
-				SentOn = deliveryLetter.SentOn.ToUniversalTime()
+				SentOn = deliveryLetter.SentOn.ToUniversalTime(),
+				Operator = deliveryLetter.Operator
 			}, cancellationToken).ConfigureAwait(false);
 
 		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -161,7 +162,8 @@ internal class TgsRepository : ITgsRepository
 				deliveryRow.Subject,
 				deliveryRow.Content,
 				deliveryRow.ComeFrom,
-				deliveryRow.SentOn);
+				deliveryRow.SentOn,
+				deliveryRow.Operator);
 	}
 
 	public IAsyncEnumerable<DeliveryLetter> QueryDeliveryLettersByUserAsync(string user, CancellationToken cancellationToken = default)
@@ -183,7 +185,8 @@ internal class TgsRepository : ITgsRepository
 				row.Subject,
 				row.Content,
 				row.ComeFrom,
-				row.SentOn))
+				row.SentOn,
+				row.Operator))
 			.Do(_ => cancellationToken.ThrowIfCancellationRequested());
 	}
 }

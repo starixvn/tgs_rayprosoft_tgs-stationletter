@@ -27,7 +27,8 @@ internal class StationLetterClient : IStationLetterClient
 				ReceiverType.Receivers,
 				JsonSerializer.SerializeToDocument(request.Receivers, StationLetterUtility.SerializerOptions),
 				request.Subject,
-				request.Content),
+				request.Content,
+				request.Operator),
 			cancellationToken);
 
 	public async ValueTask ReplyStationLetterAsync(
@@ -90,7 +91,8 @@ internal class StationLetterClient : IStationLetterClient
 				ReceiverType.BrandAllPlayers,
 				null,
 				request.Subject,
-				request.Content),
+				request.Content,
+				request.Operator),
 			cancellationToken);
 
 	public async ValueTask PostStationLetterAsync(PostStationLetterRequest request, CancellationToken cancellationToken = default)

@@ -22,7 +22,8 @@ public class StationLetterController : ControllerBase
 			viewModel.ReceiverType,
 			viewModel.Receiver,
 			viewModel.Subject,
-			viewModel.Content);
+			viewModel.Content,
+			viewModel.Operator);
 
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}
@@ -38,7 +39,8 @@ public class StationLetterController : ControllerBase
 			viewModel.Sender,
 			viewModel.Receiver,
 			letterId,
-			viewModel.Content);
+			viewModel.Content,
+			viewModel.Operator);
 
 		return sendService.ExecuteAsync(command, HttpContext.RequestAborted);
 	}

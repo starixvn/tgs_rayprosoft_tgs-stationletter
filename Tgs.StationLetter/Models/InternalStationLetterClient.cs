@@ -67,7 +67,8 @@ internal class InternalStationLetterClient : IStationLetterClient
 			request.Sender,
 			request.Receiver,
 			letterId,
-			request.Content);
+			request.Content,
+			request.Operator);
 
 		return _serviceCoordinator.ExecuteAsync(command, cancellationToken);
 	}
@@ -91,7 +92,8 @@ internal class InternalStationLetterClient : IStationLetterClient
 				letter.Subject,
 				letter.Content,
 				letter.ComeFrom,
-				letter.SentOn));
+				letter.SentOn,
+				letter.Operator));
 	}
 
 	public async ValueTask<Client.DeliveryLetter?> GetDeliveryLetterAsync(Guid deliveryId, CancellationToken cancellationToken = default)
@@ -112,7 +114,8 @@ internal class InternalStationLetterClient : IStationLetterClient
 				deliveryLetter.Subject,
 				deliveryLetter.Content,
 				deliveryLetter.ComeFrom,
-				deliveryLetter.SentOn);
+				deliveryLetter.SentOn,
+				deliveryLetter.Operator);
 	}
 
 	public ValueTask PostStationLetterAsync(PostStationLetterRequest request, CancellationToken cancellationToken = default)

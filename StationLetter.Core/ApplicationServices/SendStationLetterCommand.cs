@@ -6,4 +6,5 @@ public record SendStationLetterCommand(
 	ReceiverType ReceiverType,
 	JsonDocument? Receiver,
 	string Subject,
-	string Content);
+	string Content,
+	string Operator);

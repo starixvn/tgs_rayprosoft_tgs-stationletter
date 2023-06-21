@@ -7,4 +7,6 @@ public class ReplyStationLetterViewModel
 	public required string Receiver { get; set; }
 
 	public required string Content { get; set; }
+
+	public required string Operator { get; set; }
 }
