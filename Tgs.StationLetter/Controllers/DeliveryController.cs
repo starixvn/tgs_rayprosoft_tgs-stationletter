@@ -27,7 +27,8 @@ public class DeliveryController : ControllerBase
 				Receiver = letter.Receiver,
 				Subject = letter.Subject,
 				Content = letter.Content,
-				SentOn = letter.SentOn
+				SentOn = letter.SentOn,
+				Operator = letter.Operator
 			});
 	}
 
@@ -53,7 +54,8 @@ public class DeliveryController : ControllerBase
 				Subject = deliveryLetter.Subject,
 				Content = deliveryLetter.Content,
 				ComeFrom = deliveryLetter.ComeFrom,
-				SentOn = deliveryLetter.SentOn
+				SentOn = deliveryLetter.SentOn,
+				Operator = deliveryLetter.Operator
 			};
 	}
 

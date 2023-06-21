@@ -24,7 +24,8 @@ public class SendStationLetterTests
 			ReceiverType.Receivers,
 			JsonSerializer.SerializeToDocument(new[] { "receiver" }, StationLetterUtility.SerializerOptions),
 			"test",
-			"aabbcc");
+			"aabbcc",
+			"operator");
 
 		var expected = new
 		{
@@ -62,7 +63,8 @@ public class SendStationLetterTests
 			"receiver",
 			"sender",
 			Guid.NewGuid(),
-			"ddeeff");
+			"ddeeff",
+			"operator");
 
 		_ = fakeTgsRepository.GetLetterAsync(Arg.Is(command.ReplyLetterId))
 			.Returns(new Letter(
@@ -84,7 +86,8 @@ public class SendStationLetterTests
 			ReceiverType = ReceiverType.Receivers,
 			Subject = "Re:ttt",
 			command.Content,
-			ComeFrom = command.ReplyLetterId
+			ComeFrom = command.ReplyLetterId,
+			command.Operator
 		};
 
 		// Act

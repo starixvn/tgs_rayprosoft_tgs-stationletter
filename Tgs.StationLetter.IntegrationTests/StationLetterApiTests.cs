@@ -44,14 +44,16 @@ public class StationLetterApiTests
 			"sender",
 			new[] { "receiver" },
 			"abc",
-			"aabbcc");
+			"aabbcc",
+			"operator");
 
 		var expected = new
 		{
 			request.Sender,
 			ReceiverType = ReceiverType.Receivers,
 			request.Subject,
-			request.Content
+			request.Content,
+			request.Operator
 		}.ToExpectedObject();
 
 		// Act
@@ -83,14 +85,15 @@ public class StationLetterApiTests
 		var request = new BrandAllPlayersStationLetterRequest(
 			"GPI",
 			"abc",
-			"aabbcc");
+			"aabbcc",
+			"operator");
 
 		var expected = new
 		{
 			Sender = request.BrandCode,
 			ReceiverType = ReceiverType.BrandAllPlayers,
 			request.Subject,
-			request.Content
+			request.Content,
 		}.ToExpectedObject();
 
 		// Act
@@ -122,7 +125,7 @@ public class StationLetterApiTests
 		var sut = new StationLetterClient(httpClient);
 
 		var letterId = Guid.NewGuid();
-		var request = new ReplyStationLetterRequest("receiver", "sender", "987654321");
+		var request = new ReplyStationLetterRequest("receiver", "sender", "987654321", "operator");
 
 		_ = fakeTgsRepository.GetLetterAsync(Arg.Is(letterId), Arg.Any<CancellationToken>())
 			.Returns(new Letter(
@@ -144,7 +147,8 @@ public class StationLetterApiTests
 			ReceiverType = ReceiverType.Receivers,
 			Subject = "Re:ttt",
 			request.Content,
-			ComeFrom = letterId
+			ComeFrom = letterId,
+			request.Operator
 		}.ToExpectedObject();
 
 		// Act
@@ -498,7 +502,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
 				Subject = "t1",
 				Content = "t1t1",
-				SentOn = DateTime.UtcNow
+				SentOn = DateTime.UtcNow,
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -508,7 +513,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
 				Subject = "t2",
 				Content = "t2t2",
-				SentOn = DateTime.UtcNow
+				SentOn = DateTime.UtcNow,
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -518,7 +524,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
 				Subject = "t3",
 				Content = "t3t3",
-				SentOn = DateTime.UtcNow
+				SentOn = DateTime.UtcNow,
+				Operator = "operator"
 			}
 		};
 		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
@@ -534,7 +541,8 @@ public class StationLetterApiTests
 				row.Subject,
 				row.Content,
 				row.ComeFrom,
-				row.SentOn))
+				row.SentOn,
+				row.Operator))
 			.ToArray();
 
 		// Act
@@ -577,7 +585,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
 				Subject = "t1",
 				Content = "t1t1",
-				SentOn = DateTime.UtcNow.AddDays(-81D)
+				SentOn = DateTime.UtcNow.AddDays(-81D),
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -587,7 +596,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
 				Subject = "t2",
 				Content = "t2t2",
-				SentOn = DateTime.UtcNow.AddDays(-51D)
+				SentOn = DateTime.UtcNow.AddDays(-51D),
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -597,7 +607,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
 				Subject = "t3",
 				Content = "t3t3",
-				SentOn = DateTime.UtcNow.AddDays(-10D)
+				SentOn = DateTime.UtcNow.AddDays(-10D),
+				Operator = "operator"
 			}
 		};
 		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
@@ -613,7 +624,8 @@ public class StationLetterApiTests
 				row.Subject,
 				row.Content,
 				row.ComeFrom,
-				row.SentOn))
+				row.SentOn,
+				row.Operator))
 			.OrderByDescending(row => row.SentOn)
 			.ToArray();
 
@@ -660,7 +672,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
 				Subject = "t1",
 				Content = "t1t1",
-				SentOn = DateTime.UtcNow.AddDays(-91D)
+				SentOn = DateTime.UtcNow.AddDays(-91D),
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -670,7 +683,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
 				Subject = "t2",
 				Content = "t2t2",
-				SentOn = DateTime.UtcNow.AddDays(-51D)
+				SentOn = DateTime.UtcNow.AddDays(-51D),
+				Operator = "operator"
 			},
 			new StationLetterDelivery
 			{
@@ -680,7 +694,8 @@ public class StationLetterApiTests
 				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
 				Subject = "t3",
 				Content = "t3t3",
-				SentOn = DateTime.UtcNow.AddDays(-10D)
+				SentOn = DateTime.UtcNow.AddDays(-10D),
+				Operator = "operator"
 			}
 		};
 		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
@@ -696,7 +711,8 @@ public class StationLetterApiTests
 				row.Subject,
 				row.Content,
 				row.ComeFrom,
-				row.SentOn))
+				row.SentOn,
+				row.Operator))
 			.OrderByDescending(row => row.SentOn)
 			.ToArray();
 
@@ -741,6 +757,7 @@ public class StationLetterApiTests
 			Subject = "t3",
 			Content = "t3t3",
 			SentOn = DateTime.UtcNow.AddDays(-81D),
+			Operator = "operator"
 		};
 		_ = await dbContext.StationLetterDeliveries.AddAsync(row);
 
@@ -754,7 +771,8 @@ public class StationLetterApiTests
 			row.Subject,
 			row.Content,
 			row.ComeFrom,
-			row.SentOn);
+			row.SentOn,
+			row.Operator);
 
 		// Act
 		var actual = await sut.GetDeliveryLetterAsync(letterId);

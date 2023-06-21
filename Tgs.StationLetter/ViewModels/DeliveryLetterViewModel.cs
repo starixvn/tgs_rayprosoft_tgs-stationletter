@@ -19,4 +19,6 @@ public class DeliveryLetterViewModel
 	public Guid? ComeFrom { get; set; }
 
 	public DateTime SentOn { get; set; }
+
+	public required string Operator { get; set; }
 }

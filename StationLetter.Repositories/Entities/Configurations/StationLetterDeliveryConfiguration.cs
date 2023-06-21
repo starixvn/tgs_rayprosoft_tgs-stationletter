@@ -22,6 +22,9 @@ namespace Tgs.StationLetterService.Repositories.Entities.Configurations
             .HasColumnName("id");
             entity.Property(e => e.ComeFrom).HasColumnName("come_from");
             entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.Operator)
+            .HasDefaultValueSql("''::text")
+            .HasColumnName("operator");
             entity.Property(e => e.Receiver).HasColumnName("receiver");
             entity.Property(e => e.ReceiverType).HasColumnName("receiver_type");
             entity.Property(e => e.Sender).HasColumnName("sender");

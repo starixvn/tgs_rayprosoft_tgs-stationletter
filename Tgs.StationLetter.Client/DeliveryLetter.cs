@@ -9,4 +9,5 @@ public record DeliveryLetter(
 	string Subject,
 	string Content,
 	Guid? ComeFrom,
-	DateTime SentOn);
+	DateTime SentOn,
+	string Operator);

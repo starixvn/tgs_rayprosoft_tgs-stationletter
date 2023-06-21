@@ -43,7 +43,8 @@ internal class ReplyStationLetterCommandService : ICommandService<ReplyStationLe
 			$"Re:{letter.Subject}",
 			command.Content,
 			command.ReplyLetterId,
-			DateTime.UtcNow);
+			DateTime.UtcNow,
+			command.Operator);
 
 		await _tgsRepository.InsertDeliveryLetterAsync(
 			deliveryLetter,
