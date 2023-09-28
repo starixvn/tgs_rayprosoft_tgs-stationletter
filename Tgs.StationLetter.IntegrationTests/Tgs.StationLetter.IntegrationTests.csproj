@@ -23,6 +23,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="PhoenixToolkits.ExpectedObjects.Extend" Version="0.0.4" />
+    <PackageReference Include="PhoenixToolkits.MessageQueue.Direct" Version="1.0.3" />
     <PackageReference Include="xunit" Version="2.5.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

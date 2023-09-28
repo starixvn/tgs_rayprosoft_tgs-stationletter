@@ -1,13 +1,17 @@
 ﻿using System.Text.Json;
 using ExpectedObjects;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
+using Tgs.Notification.Client;
 using Tgs.ServiceUtility;
+using Tgs.StationLetter.Protos;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
+using Tgs.StationLetterService.MessageQueue;
 using Tgs.StationLetterService.Repositories.Entities;
 using Valhalla.MessageQueue;
 using Xunit.Abstractions;
@@ -16,6 +20,7 @@ namespace Tgs.StationLetterService.IntegrationTests;
 
 public class StationLetterApiTests
 {
+
 	private readonly ITestOutputHelper _testOutputHelper;
 
 	public StationLetterApiTests(ITestOutputHelper testOutputHelper)
@@ -24,84 +29,45 @@ public class StationLetterApiTests
 	}
 
 	[Fact]
-	public async Task 送出站內信()
+	public async Task 中繼傳送信件()
 	{
 		// Arrange
-		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
+		var fakeDeliveryStationLetterCommandService = Substitute.For<ICommandService<DeliveryStationLetterCommand>>();
 
 		await using var web = StationLetterTestHost.Factory
 			.WithWebHostBuilder(hostBuilder => hostBuilder
 				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
 				.ConfigureServices(services => services
-					.AddSingleton(fakeSendStationLetterCommandService)));
+					.AddSingleton(fakeDeliveryStationLetterCommandService)));
 
 		var httpClient = web.CreateClient();
 
 		var sut = new StationLetterClient(httpClient);
 
-		var request = new StationLetterRequest(
+		var request = new PostStationLetterRequest(
 			"sender",
 			new[] { "receiver" },
 			"abc",
 			"aabbcc",
-			"operator");
+			null,
+			DateTime.UtcNow);
 
-		var expected = new
-		{
+		var expected = new DeliveryStationLetterCommand(
 			request.Sender,
-			ReceiverType = ReceiverType.Receivers,
+			request.Receivers,
 			request.Subject,
 			request.Content,
-			request.Operator
-		}.ToExpectedObject();
+			request.ComeFrom,
+			request.SentOn).ToExpectedObject(
+			ctx => ctx.IgnoreEqualsOverride());
 
 		// Act
-		await sut.SendStationLetterAsync(request);
+		await sut.PostStationLetterAsync(request);
 
 		// Assert
-		_ = fakeSendStationLetterCommandService.Received(1)
+		_ = fakeDeliveryStationLetterCommandService.Received(1)
 			.ExecuteAsync(
-				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
-				Arg.Any<CancellationToken>());
-	}
-
-	[Fact]
-	public async Task 送出全部玩家站內信()
-	{
-		// Arrange
-		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
-
-		await using var web = StationLetterTestHost.Factory
-			.WithWebHostBuilder(hostBuilder => hostBuilder
-				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
-				.ConfigureServices(services => services
-					.AddSingleton(fakeSendStationLetterCommandService)));
-
-		var httpClient = web.CreateClient();
-
-		var sut = new StationLetterClient(httpClient);
-
-		var request = new BrandAllPlayersStationLetterRequest(
-			"GPI",
-			"abc",
-			"aabbcc",
-			"operator");
-
-		var expected = new
-		{
-			Sender = request.BrandCode,
-			ReceiverType = ReceiverType.BrandAllPlayers,
-			request.Subject,
-			request.Content,
-		}.ToExpectedObject();
-
-		// Act
-		await sut.SendBrandAllPlayersStationLetterAsync(request);
-
-		// Assert
-		_ = fakeSendStationLetterCommandService.Received(1)
-			.ExecuteAsync(
-				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
+				Arg.Is<DeliveryStationLetterCommand>(cmd => expected.Matches(cmd)),
 				Arg.Any<CancellationToken>());
 	}
 
@@ -387,94 +353,6 @@ public class StationLetterApiTests
 	}
 
 	[Fact]
-	public async Task 標記站內信已讀()
-	{
-		// Arrange
-		await using var web = StationLetterTestHost.Factory
-			.WithWebHostBuilder(hostBuilder => hostBuilder
-				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
-
-		var httpClient = web.CreateClient();
-
-		var sut = new StationLetterClient(httpClient);
-
-		var letterId = Guid.NewGuid();
-
-		var dbContext = web.Services.GetRequiredService<TgsContext>();
-
-		var row = new StationLetterRow
-		{
-			Id = letterId,
-			Sender = "test4",
-			Receiver = "test1",
-			Subject = "t3",
-			Content = "t3t3",
-			SentOn = DateTime.UtcNow.AddDays(-81D),
-			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
-		};
-		_ = await dbContext.StationLetterRows.AddAsync(row);
-
-		_ = await dbContext.SaveChangesAsync();
-
-		// Act
-		Assert.False(row.HaveRead);
-
-		await sut.MarkStationLetterHaveReadAsync(letterId);
-
-		// Assert
-		Assert.True(row.HaveRead);
-	}
-
-	[Fact]
-	public async Task 取得站內信內容()
-	{
-		// Arrange
-		await using var web = StationLetterTestHost.Factory
-			.WithWebHostBuilder(hostBuilder => hostBuilder
-				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
-
-		var httpClient = web.CreateClient();
-
-		var sut = new StationLetterClient(httpClient);
-
-		var letterId = Guid.NewGuid();
-
-		var dbContext = web.Services.GetRequiredService<TgsContext>();
-
-		var row = new StationLetterRow
-		{
-			Id = letterId,
-			Sender = "test4",
-			Receiver = "test1",
-			Subject = "t3",
-			Content = "t3t3",
-			SentOn = DateTime.UtcNow.AddDays(-81D),
-			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
-		};
-		_ = await dbContext.StationLetterRows.AddAsync(row);
-
-		_ = await dbContext.SaveChangesAsync();
-
-		var expected = new Client.StationLetter(
-			letterId,
-			row.Sender,
-			row.Receiver,
-			row.Subject,
-			row.Quotation,
-			row.Content,
-			row.ComeFrom,
-			row.SentOn,
-			row.HaveRead,
-			row.Replied);
-
-		// Act
-		var actual = await sut.GetStationLetterAsync(letterId);
-
-		// Assert
-		Assert.Equal(expected, actual);
-	}
-
-	[Fact]
 	public async Task 取得User的寄件列表()
 	{
 		// Arrange
@@ -555,93 +433,6 @@ public class StationLetterApiTests
 				_ = itemCtx.IgnoreEqualsOverride();
 				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
 			})).ShouldMatch(actual);
-	}
-
-	[Fact]
-	public async Task 取得User的寄件列表_會依照SentOn排序()
-	{
-		// Arrange
-		await using var web = StationLetterTestHost.Factory
-			.WithWebHostBuilder(hostBuilder => hostBuilder
-				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
-				.ConfigureServices(services => services
-					.AddHttpClientLoggingHandler()));
-
-		var httpClient = web.CreateDefaultClient(web.Services.ResolveLoggingHandler<StationLetterClient>());
-
-		var sut = new StationLetterClient(httpClient);
-
-		var user = "test1";
-
-		var dbContext = web.Services.GetRequiredService<TgsContext>();
-
-		var rows = new[] {
-			new StationLetterDelivery
-			{
-				Id = Guid.NewGuid(),
-				Sender = user,
-				ReceiverType = ReceiverType.Receivers.ToString(),
-				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
-				Subject = "t1",
-				Content = "t1t1",
-				SentOn = DateTime.UtcNow.AddDays(-81D),
-				Operator = "operator"
-			},
-			new StationLetterDelivery
-			{
-				Id = Guid.NewGuid(),
-				Sender = user,
-				ReceiverType = ReceiverType.Receivers.ToString(),
-				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
-				Subject = "t2",
-				Content = "t2t2",
-				SentOn = DateTime.UtcNow.AddDays(-51D),
-				Operator = "operator"
-			},
-			new StationLetterDelivery
-			{
-				Id = Guid.NewGuid(),
-				Sender = user,
-				ReceiverType = ReceiverType.Receivers.ToString(),
-				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
-				Subject = "t3",
-				Content = "t3t3",
-				SentOn = DateTime.UtcNow.AddDays(-10D),
-				Operator = "operator"
-			}
-		};
-		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
-
-		_ = await dbContext.SaveChangesAsync();
-
-		var expected = rows
-			.Select(row => new Client.DeliveryLetter(
-				row.Id,
-				row.Sender,
-				Enum.Parse<ReceiverType>(row.ReceiverType),
-				JsonDocument.Parse(row.Receiver!),
-				row.Subject,
-				row.Content,
-				row.ComeFrom,
-				row.SentOn,
-				row.Operator))
-			.OrderByDescending(row => row.SentOn)
-			.ToArray();
-
-		// Act
-		var actual = await sut.ListDeliverLettersAsync(user).ToArrayAsync();
-
-		// Assert
-		expected.ToExpectedObject(ctx => ctx.ArrayMemberShouldEqual(
-			o => o,
-			itemCtx =>
-			{
-				_ = itemCtx.IgnoreEqualsOverride();
-				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
-			})).ShouldEqual(actual);
-		Assert.Equal(
-			expected.Select(item => item.SentOn).ToArray(),
-			actual.Select(item => item.SentOn).ToArray());
 	}
 
 	[Fact]
@@ -732,6 +523,142 @@ public class StationLetterApiTests
 	}
 
 	[Fact]
+	public async Task 取得User的寄件列表_會依照SentOn排序()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddHttpClientLoggingHandler()));
+
+		var httpClient = web.CreateDefaultClient(web.Services.ResolveLoggingHandler<StationLetterClient>());
+
+		var sut = new StationLetterClient(httpClient);
+
+		var user = "test1";
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var rows = new[] {
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test2"}),
+				Subject = "t1",
+				Content = "t1t1",
+				SentOn = DateTime.UtcNow.AddDays(-81D),
+				Operator = "operator"
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test3"}),
+				Subject = "t2",
+				Content = "t2t2",
+				SentOn = DateTime.UtcNow.AddDays(-51D),
+				Operator = "operator"
+			},
+			new StationLetterDelivery
+			{
+				Id = Guid.NewGuid(),
+				Sender = user,
+				ReceiverType = ReceiverType.Receivers.ToString(),
+				Receiver = JsonSerializer.Serialize(new[]{ "test4"}),
+				Subject = "t3",
+				Content = "t3t3",
+				SentOn = DateTime.UtcNow.AddDays(-10D),
+				Operator = "operator"
+			}
+		};
+		await dbContext.StationLetterDeliveries.AddRangeAsync(rows);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = rows
+			.Select(row => new Client.DeliveryLetter(
+				row.Id,
+				row.Sender,
+				Enum.Parse<ReceiverType>(row.ReceiverType),
+				JsonDocument.Parse(row.Receiver!),
+				row.Subject,
+				row.Content,
+				row.ComeFrom,
+				row.SentOn,
+				row.Operator))
+			.OrderByDescending(row => row.SentOn)
+			.ToArray();
+
+		// Act
+		var actual = await sut.ListDeliverLettersAsync(user).ToArrayAsync();
+
+		// Assert
+		expected.ToExpectedObject(ctx => ctx.ArrayMemberShouldEqual(
+			o => o,
+			itemCtx =>
+			{
+				_ = itemCtx.IgnoreEqualsOverride();
+				_ = itemCtx.IgnoreRelativePath(nameof(DeliveryLetter.Receiver));
+			})).ShouldEqual(actual);
+		Assert.Equal(
+			expected.Select(item => item.SentOn).ToArray(),
+			actual.Select(item => item.SentOn).ToArray());
+	}
+
+	[Fact]
+	public async Task 取得站內信內容()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var letterId = Guid.NewGuid();
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var row = new StationLetterRow
+		{
+			Id = letterId,
+			Sender = "test4",
+			Receiver = "test1",
+			Subject = "t3",
+			Content = "t3t3",
+			SentOn = DateTime.UtcNow.AddDays(-81D),
+			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
+		};
+		_ = await dbContext.StationLetterRows.AddAsync(row);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		var expected = new Client.StationLetter(
+			letterId,
+			row.Sender,
+			row.Receiver,
+			row.Subject,
+			row.Quotation,
+			row.Content,
+			row.ComeFrom,
+			row.SentOn,
+			row.HaveRead,
+			row.Replied);
+
+		// Act
+		var actual = await sut.GetStationLetterAsync(letterId);
+
+		// Assert
+		Assert.Equal(expected, actual);
+	}
+
+	[Fact]
 	public async Task 取得寄件備份內容()
 	{
 		// Arrange
@@ -785,45 +712,183 @@ public class StationLetterApiTests
 	}
 
 	[Fact]
-	public async Task 中繼傳送信件()
+	public async Task 送出全部玩家站內信()
 	{
 		// Arrange
-		var fakeDeliveryStationLetterCommandService = Substitute.For<ICommandService<DeliveryStationLetterCommand>>();
+		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
 
 		await using var web = StationLetterTestHost.Factory
 			.WithWebHostBuilder(hostBuilder => hostBuilder
 				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
 				.ConfigureServices(services => services
-					.AddSingleton(fakeDeliveryStationLetterCommandService)));
+					.AddSingleton(fakeSendStationLetterCommandService)));
 
 		var httpClient = web.CreateClient();
 
 		var sut = new StationLetterClient(httpClient);
 
-		var request = new PostStationLetterRequest(
+		var request = new BrandAllPlayersStationLetterRequest(
+			"GPI",
+			"abc",
+			"aabbcc",
+			"operator");
+
+		var expected = new
+		{
+			Sender = request.BrandCode,
+			ReceiverType = ReceiverType.BrandAllPlayers,
+			request.Subject,
+			request.Content,
+		}.ToExpectedObject();
+
+		// Act
+		await sut.SendBrandAllPlayersStationLetterAsync(request);
+
+		// Assert
+		_ = fakeSendStationLetterCommandService.Received(1)
+			.ExecuteAsync(
+				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
+				Arg.Any<CancellationToken>());
+	}
+
+	[Fact]
+	public async Task 送出站內信()
+	{
+		// Arrange
+		var fakeSendStationLetterCommandService = Substitute.For<ICommandService<SendStationLetterCommand>>();
+
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddSingleton(fakeSendStationLetterCommandService)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var request = new StationLetterRequest(
 			"sender",
 			new[] { "receiver" },
 			"abc",
 			"aabbcc",
-			null,
-			DateTime.UtcNow);
+			"operator");
 
-		var expected = new DeliveryStationLetterCommand(
+		var expected = new
+		{
 			request.Sender,
-			request.Receivers,
+			ReceiverType = ReceiverType.Receivers,
 			request.Subject,
 			request.Content,
-			request.ComeFrom,
-			request.SentOn).ToExpectedObject(
-			ctx => ctx.IgnoreEqualsOverride());
+			request.Operator
+		}.ToExpectedObject();
 
 		// Act
-		await sut.PostStationLetterAsync(request);
+		await sut.SendStationLetterAsync(request);
 
 		// Assert
-		_ = fakeDeliveryStationLetterCommandService.Received(1)
+		_ = fakeSendStationLetterCommandService.Received(1)
 			.ExecuteAsync(
-				Arg.Is<DeliveryStationLetterCommand>(cmd => expected.Matches(cmd)),
+				Arg.Is<SendStationLetterCommand>(cmd => expected.Matches(cmd)),
 				Arg.Any<CancellationToken>());
 	}
+
+	[Fact]
+	public async Task 最終送達目的地()
+	{
+		// Arrange
+		var fakeMailSlot = Substitute.For<IMailSlot>();
+		var fakeNotificationClient = Substitute.For<INotificationClient>();
+
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper))
+				.ConfigureServices(services => services
+					.AddSingleton(fakeMailSlot)
+					.AddSingleton(fakeNotificationClient)
+					.AddMessageQueue()
+					.AddDirectMessageQueue(config => config
+						.AddHandler(
+							ProcessorTypes.InboxLettersHandlerType,
+							"tgs.station-letter.inbox"))
+					.ClearAllExchanges()
+					.AddDirectGlobPatternExchange("*")));
+
+		var sut = web.Services.GetRequiredService<IMessageSender>();
+
+		var request = new SendLetterRequest
+		{
+			SendLetterId = Guid.NewGuid()
+		};
+
+		_ = fakeMailSlot.GetWaitingSendLettersAsync(Arg.Is(request.SendLetterId.ToGuid()), Arg.Any<CancellationToken>())
+			.Returns(
+				new[]
+				{
+					new Letter(
+						Guid.NewGuid(),
+						"test1",
+						"test2",
+						"aaa",
+						null,
+						"bbbb",
+						null,
+						DateTime.Now,
+						DateTime.Now,
+						false,
+						false)
+				}.ToAsyncEnumerable(), 
+				AsyncEnumerable.Empty<Letter>());
+
+		// Act
+		await sut.SendAsync("tgs.station-letter.inbox", request.ToByteArray());
+
+		// Assert
+		_ = fakeNotificationClient.Received(1)
+			.PushNotificationAsync(
+				Arg.Is("test2"),
+				Arg.Is("LetterInBox"),
+				Arg.Is(default(JsonDocument)),
+				Arg.Any<CancellationToken>());
+	}
+
+	[Fact]
+	public async Task 標記站內信已讀()
+	{
+		// Arrange
+		await using var web = StationLetterTestHost.Factory
+			.WithWebHostBuilder(hostBuilder => hostBuilder
+				.ConfigureLogging(logging => logging.AddXUnit(_testOutputHelper)));
+
+		var httpClient = web.CreateClient();
+
+		var sut = new StationLetterClient(httpClient);
+
+		var letterId = Guid.NewGuid();
+
+		var dbContext = web.Services.GetRequiredService<TgsContext>();
+
+		var row = new StationLetterRow
+		{
+			Id = letterId,
+			Sender = "test4",
+			Receiver = "test1",
+			Subject = "t3",
+			Content = "t3t3",
+			SentOn = DateTime.UtcNow.AddDays(-81D),
+			ReceivedOn = DateTime.UtcNow.AddDays(-81D)
+		};
+		_ = await dbContext.StationLetterRows.AddAsync(row);
+
+		_ = await dbContext.SaveChangesAsync();
+
+		// Act
+		Assert.False(row.HaveRead);
+
+		await sut.MarkStationLetterHaveReadAsync(letterId);
+
+		// Assert
+		Assert.True(row.HaveRead);
+	}
+
 }
