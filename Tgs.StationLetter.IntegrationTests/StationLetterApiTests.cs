@@ -20,7 +20,6 @@ namespace Tgs.StationLetterService.IntegrationTests;
 
 public class StationLetterApiTests
 {
-
 	private readonly ITestOutputHelper _testOutputHelper;
 
 	public StationLetterApiTests(ITestOutputHelper testOutputHelper)
@@ -837,7 +836,7 @@ public class StationLetterApiTests
 						DateTime.Now,
 						false,
 						false)
-				}.ToAsyncEnumerable(), 
+				}.ToAsyncEnumerable(),
 				AsyncEnumerable.Empty<Letter>());
 
 		// Act
@@ -890,5 +889,4 @@ public class StationLetterApiTests
 		// Assert
 		Assert.True(row.HaveRead);
 	}
-
 }
