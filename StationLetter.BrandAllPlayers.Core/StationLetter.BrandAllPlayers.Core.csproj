@@ -12,8 +12,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="PhoenixToolkits.MessageQueue" Version="1.0.3" />
     <PackageReference Include="Tgs.BrandCertificateClient" Version="0.0.29" />
-    <PackageReference Include="Tgs.MessageQueue" Version="2.3.0" />
     <PackageReference Include="Tgs.PlayerService.Client" Version="0.0.37" />
   </ItemGroup>
 

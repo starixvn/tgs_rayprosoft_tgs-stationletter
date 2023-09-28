@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf;
-using Tgs.MessageQueue;
 using Tgs.ServiceUtility;
 using Tgs.StationLetter.Protos;
+using Valhalla.MessageQueue;
 
 namespace Tgs.StationLetterService.ApplicationServices;
 

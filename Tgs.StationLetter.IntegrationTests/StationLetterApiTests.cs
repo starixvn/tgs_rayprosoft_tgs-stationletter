@@ -5,12 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
-using Tgs.MessageQueue;
 using Tgs.ServiceUtility;
 using Tgs.StationLetterService.ApplicationServices;
 using Tgs.StationLetterService.Client;
 using Tgs.StationLetterService.Repositories.Entities;
-using Xunit;
+using Valhalla.MessageQueue;
 using Xunit.Abstractions;
 
 namespace Tgs.StationLetterService.IntegrationTests;

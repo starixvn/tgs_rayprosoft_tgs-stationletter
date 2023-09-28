@@ -1,10 +1,10 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Tgs.MessageQueue;
 using Tgs.StationLetter.Protos;
 using Tgs.StationLetterService;
 using Tgs.StationLetterService.MessageQueue;
+using Valhalla.MessageQueue;
 
 namespace StationLetter.Core.UnitTests;
 

@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Tgs.MessageQueue;
 using Tgs.ServiceUtility;
 using Tgs.StationLetter.Protos;
+using Valhalla.MessageQueue;
 
 namespace Tgs.StationLetterService.ApplicationServices;
 

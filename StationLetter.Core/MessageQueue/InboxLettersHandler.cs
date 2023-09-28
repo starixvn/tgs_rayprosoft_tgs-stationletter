@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using Tgs.MessageQueue;
 using Tgs.StationLetter.Protos;
+using Valhalla.MessageQueue;
 
 namespace Tgs.StationLetterService.MessageQueue;
 

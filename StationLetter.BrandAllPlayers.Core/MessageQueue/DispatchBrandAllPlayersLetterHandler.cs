@@ -1,8 +1,8 @@
 ﻿using Tgs.BrandCertificate.Clients;
-using Tgs.MessageQueue;
 using Tgs.PlayerService.Client;
 using Tgs.StationLetter.Protos;
 using Tgs.StationLetterService.Client;
+using Valhalla.MessageQueue;
 
 namespace Tgs.StationLetter.BrandAllPlayers.MessageQueue;
 
