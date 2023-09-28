@@ -2,9 +2,9 @@
 using ExpectedObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Tgs.MessageQueue;
 using Tgs.StationLetterService;
 using Tgs.StationLetterService.ApplicationServices;
+using Valhalla.MessageQueue;
 
 namespace StationLetter.Core.UnitTests;
 

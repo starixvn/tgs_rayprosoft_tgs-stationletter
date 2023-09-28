@@ -1,6 +1,6 @@
 ﻿using NSubstitute;
-using Tgs.MessageQueue;
 using Tgs.StationLetterService;
+using Valhalla.MessageQueue;
 
 namespace StationLetter.Core.UnitTests;
 

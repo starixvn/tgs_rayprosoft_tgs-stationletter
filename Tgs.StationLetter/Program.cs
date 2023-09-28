@@ -50,6 +50,7 @@ builder.Services
 		builder.Configuration.GetValue<Uri>("BrandAllPlayers:BrandServiceBaseUrl")!)
 	.AddPlayerServiceClient((playerOptions, _) => playerOptions.BaseUrl =
 		builder.Configuration.GetValue<Uri>("BrandAllPlayers:PlayerServiceBaseUrl")!)
+	.AddNotificationClient()
 	.AddTransient<IStationLetterClient, InternalStationLetterClient>()
 	.AddMessageQueue()
 	.AddNatsMessageQueue(natsConfig => natsConfig
@@ -91,6 +92,7 @@ builder.Services
 		.SetResourceBuilder(ResourceBuilder.CreateDefault()
 			.AddEnvironmentVariableDetector())
 		.AddSource("Tgs.*")
+		.AddSource("Valhalla.*")
 		.AddAspNetCoreInstrumentation()
 		.AddOtlpExporter())
 	.WithMetrics(meterBuiler => meterBuiler

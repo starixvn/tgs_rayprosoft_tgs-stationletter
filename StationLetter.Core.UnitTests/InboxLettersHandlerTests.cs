@@ -1,5 +1,7 @@
-﻿using Google.Protobuf;
+﻿using System.Text.Json;
+using Google.Protobuf;
 using NSubstitute;
+using Tgs.Notification.Client;
 using Tgs.StationLetter.Protos;
 using Tgs.StationLetterService;
 using Tgs.StationLetterService.MessageQueue;
@@ -14,8 +16,12 @@ public class InboxLettersHandlerTests
 		// Arrange
 		var fakeMailSlot = Substitute.For<IMailSlot>();
 		var fakePostman = Substitute.For<IStationLetterPostman>();
+		var fakeNotificationClient = Substitute.For<INotificationClient>();
 
-		var sut = new InboxLettersHandler(fakeMailSlot, fakePostman);
+		var sut = new InboxLettersHandler(
+			fakeMailSlot,
+			fakePostman,
+			fakeNotificationClient);
 
 		var request = new SendLetterRequest
 		{
@@ -51,5 +57,10 @@ public class InboxLettersHandlerTests
 			.CompleteSendLetterAsync(Arg.Is(request.SendLetterId.ToGuid()));
 		_ = fakeMailSlot.Received(1)
 			.CompleteWaitingSendLetterBatchAsync(Arg.Is(request.SendLetterId.ToGuid()), Arg.Is(1));
+		_ = fakeNotificationClient.Received(1)
+			.PushNotificationAsync(
+				Arg.Is("receiver"),
+				Arg.Is("LetterInBox"),
+				Arg.Is(default(JsonDocument)));
 	}
 }
