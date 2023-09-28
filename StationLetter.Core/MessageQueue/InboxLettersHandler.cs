@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Tgs.Notification.Client;
 using Tgs.StationLetter.Protos;
 using Valhalla.MessageQueue;
 
@@ -8,11 +9,16 @@ internal class InboxLettersHandler : IMessageHandler
 {
 	private readonly IMailSlot _mailSlot;
 	private readonly IStationLetterPostman _stationLetterPostman;
+	private readonly INotificationClient _notificationClient;
 
-	public InboxLettersHandler(IMailSlot mailSlot, IStationLetterPostman stationLetterPostman)
+	public InboxLettersHandler(
+		IMailSlot mailSlot,
+		IStationLetterPostman stationLetterPostman,
+		INotificationClient notificationClient)
 	{
 		_mailSlot = mailSlot ?? throw new ArgumentNullException(nameof(mailSlot));
 		_stationLetterPostman = stationLetterPostman ?? throw new ArgumentNullException(nameof(stationLetterPostman));
+		_notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
 	}
 
 	public async ValueTask HandleAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
@@ -33,6 +39,16 @@ internal class InboxLettersHandler : IMessageHandler
 					request.SendLetterId,
 					letters.Length,
 					cancellationToken).ConfigureAwait(false);
+
+				if (letters is not null)
+					await Task.WhenAll(letters.Select(letter => _notificationClient
+						.PushNotificationAsync(
+							letter.Receiver,
+							"LetterInBox",
+							null,
+							cancellationToken)
+						.AsTask())
+						.ToArray()).ConfigureAwait(false);
 			}
 		}
 		finally
