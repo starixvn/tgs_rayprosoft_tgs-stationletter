@@ -39,7 +39,8 @@ internal class SendStationLetterCommandService : ICommandService<SendStationLett
 		};
 
 		await _messageSender.PublishAsync(
-			$"tgs.station-letter.dispatch.{deliveryLetter.ReceiverType.ToString().ToLowerInvariant()}",
+			//$"tgs.station-letter.dispatch.{deliveryLetter.ReceiverType.ToString().ToLowerInvariant()}",
+			$"tgs.station-letter.dispatch.{ReceiverType.Receivers.ToString().ToLowerInvariant()}",
 			request.ToByteArray(),
 			cancellationToken).ConfigureAwait(false);
 	}

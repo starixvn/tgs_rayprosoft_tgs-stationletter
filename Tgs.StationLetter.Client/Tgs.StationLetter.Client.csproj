@@ -8,10 +8,10 @@
     <RootNamespace>Tgs.StationLetterService.Client</RootNamespace>
     <PackageId>Tgs.StationLetter.Client</PackageId>
     <Title>站內信ApiClient</Title>
-    <Version>0.0.7</Version>
+    <Version>0.0.9</Version>
     <Authors>Raypro</Authors>
-    <PackageProjectUrl>https://gitlab.com/rayprosoft/tgs-stationletter</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/rayprosoft/tgs-stationletter.git</RepositoryUrl>
+    <PackageProjectUrl>https://git3.nexdev.net/tgs/rayprosoft/tgs-stationletter</PackageProjectUrl>
+    <RepositoryUrl>https://git3.nexdev.net/tgs/rayprosoft/tgs-stationletter.git</RepositoryUrl>
     <PackageTags>Tgs StationLetter</PackageTags>
   </PropertyGroup>
 

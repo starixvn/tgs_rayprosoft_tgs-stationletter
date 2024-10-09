@@ -89,7 +89,7 @@ internal class StationLetterClient : IStationLetterClient
 			new SendStationLetterRequest(
 				request.BrandCode,
 				ReceiverType.BrandAllPlayers,
-				null,
+				JsonSerializer.SerializeToDocument(request.Receivers, StationLetterUtility.SerializerOptions),
 				request.Subject,
 				request.Content,
 				request.Operator),
